@@ -58,6 +58,18 @@ describe('routes: admin preferences', () => {
 	});
 
 	describe("querying a preference by it's key", () => {
+		it('should return its value', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/preferences/globalDefaultMargin')
+				.set('Authorization', 'Bearer ' + adminToken);
+
+			expect(res.status).to.equal(200);
+			expect(res.body).to.contain.key('preference');
+			expect(res.body.preference).to.contain.all.keys('value', 'key');
+			expect(res.body.preference.value).to.equal(0.23);
+		});
+
 		it('should fail for unknown keys', async () => {
 			const res = await chai
 				.request(app)
@@ -71,13 +83,13 @@ describe('routes: admin preferences', () => {
 		it('should return a default value for an undefined preference', async () => {
 			const res = await chai
 				.request(app)
-				.get('/api/v1/admin/preferences/globalDefaultMargin')
+				.get('/api/v1/admin/preferences/defaultProductCategory')
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
 			expect(res.body).to.contain.key('preference');
 			expect(res.body.preference).to.contain.all.keys('value', 'key');
-			expect(res.body.preference.value).to.equal(0.05);
+			expect(res.body.preference.value).to.equal(0);
 		});
 
 		it('should not be called by unprivileged user', async () => {
