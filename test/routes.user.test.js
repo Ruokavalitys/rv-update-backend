@@ -233,5 +233,76 @@ describe('routes: user', () => {
 
 			expect(passwordMatches).to.be.true;
 		});
+
+		it('should not return any passwords', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'abcdefg',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					username: 'mur',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+	});
+
+	describe('Changing rfid', () => {
+		it('should change the rfid', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab45',
+				});
+
+			expect(res.status).to.equal(204);
+
+			const user = await userStore.findById(1);
+			const rfidMatches = await userStore.verifyRfid('50ab45', user.rfidHash);
+
+			expect(rfidMatches).to.be.true;
+		});
+
+		it('should not return any rfids', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab25',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'pass',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
 	});
 });
