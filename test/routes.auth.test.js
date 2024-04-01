@@ -55,6 +55,16 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('inactive user should not be able to login', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
+				rfid: '999999',
+			});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
 		});
 	});
 
@@ -100,6 +110,17 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('inactive user should not be able to login', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'user_inactive',
+				password: 'inactive',
+			});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
 		});
 	});
 });

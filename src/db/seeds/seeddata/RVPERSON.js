@@ -42,5 +42,6 @@ export const rvpersons = [
 		pass: bcrypt.hashSync('inactive', 11),
 		saldo: -1100,
 		realname: 'Inactive User',
+		rfid: bcrypt.hashSync('999999', RFID_SALT),
 	},
 ];
