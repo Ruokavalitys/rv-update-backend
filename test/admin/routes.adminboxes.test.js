@@ -75,6 +75,7 @@ describe('routes: admin boxes', () => {
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
 		});
 
 		it('should not be called by unprivileged user', async () => {

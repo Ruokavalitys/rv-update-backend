@@ -119,7 +119,7 @@ router.delete('/:categoryId', async (req, res) => {
 
 	if (categoryId == defaultCategory.categoryId) {
 		res.status(403).json({
-			error_code: 'bad_request',
+			error_code: 'forbidden_reference',
 			message: 'Cannot delete the default category',
 		});
 

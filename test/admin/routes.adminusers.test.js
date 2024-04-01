@@ -142,6 +142,7 @@ describe('routes: admin users', () => {
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should error on invalid parameters', async () => {

@@ -46,6 +46,7 @@ describe('routes: authentication', () => {
 				rfid: '12345',
 			});
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('invalid request should result in a 400 bad request response', async () => {
@@ -80,6 +81,7 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('with nonexistent user, should return a 401 unauthorized response', async () => {
@@ -89,6 +91,7 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('invalid request should result in a 400 bad request response', async () => {

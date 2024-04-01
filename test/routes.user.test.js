@@ -52,6 +52,7 @@ describe('routes: user', () => {
 				garbage: 'garbage',
 			});
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 
@@ -117,6 +118,7 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
 		});
 
 		it('should deny changing email to one already taken', async () => {
@@ -139,6 +141,7 @@ describe('routes: user', () => {
 				.send({});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 
@@ -195,6 +198,7 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 

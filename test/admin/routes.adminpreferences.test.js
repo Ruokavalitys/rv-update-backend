@@ -151,6 +151,7 @@ describe('routes: admin preferences', () => {
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should not be called by unprivileged user', async () => {

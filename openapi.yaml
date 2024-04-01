@@ -1822,7 +1822,7 @@ paths:
                   error_code:
                     type: string
                     enum:
-                      - bad_request
+                      - forbidden_reference
                   message:
                     type: string
                     example: Cannot delete the default category

@@ -82,6 +82,7 @@ describe('routes: products', () => {
 				.set('Authorization', 'Bearer ' + token);
 
 			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
 		});
 	});
 
@@ -166,6 +167,7 @@ describe('routes: products', () => {
 				});
 
 			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
 		});
 
 		it('should error on insufficient funds', async () => {
@@ -180,6 +182,7 @@ describe('routes: products', () => {
 					count: 1,
 				});
 
+			expect(res.status).to.equal(403);
 			expect(res.body.error_code).to.equal('insufficient_funds');
 		});
 	});
