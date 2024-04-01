@@ -785,6 +785,7 @@ paths:
             schema: 
               type: object
               minProperties: 1
+              additionalProperties: false
               properties: 
                 username: 
                   type: string
@@ -1187,6 +1188,7 @@ paths:
             schema: 
               type: object
               minProperties: 1
+              additionalProperties: false
               properties: 
                 itemsPerBox: 
                   type: integer
