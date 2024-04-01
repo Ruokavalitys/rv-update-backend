@@ -8,7 +8,6 @@ import logger from './logger.js';
 import admin_auth from './routes/admin/adminAuth.js';
 import admin_boxes from './routes/admin/boxes.js';
 import admin_categories from './routes/admin/categories.js';
-import admin_default_margin from './routes/admin/default_margin.js';
 import admin_history from './routes/admin/history.js';
 import admin_preferences from './routes/admin/preferences.js';
 import admin_products from './routes/admin/products.js';
@@ -46,7 +45,6 @@ app.use('/api/v1/register', register_route);
 app.use('/api/v1/products', user_products);
 app.use('/api/v1/categories', user_categories);
 
-app.use('/api/v1/admin/defaultMargin', admin_default_margin);
 app.use('/api/v1/admin/authenticate', admin_auth);
 app.use('/api/v1/admin/products', admin_products);
 app.use('/api/v1/admin/boxes', admin_boxes);
