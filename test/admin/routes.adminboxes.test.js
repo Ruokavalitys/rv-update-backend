@@ -332,6 +332,9 @@ describe('routes: admin boxes', () => {
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(404);
+
+			const deletedBox = await boxStore.findByBoxBarcode('01880335');
+			expect(deletedBox).to.not.exist;
 		});
 
 		it('should error on nonexistent box', async () => {

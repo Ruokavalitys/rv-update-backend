@@ -55,6 +55,17 @@ describe('routes: products', () => {
 			expect(res.status).to.equal(200);
 			expect(res.body.products.length).to.equal(0);
 		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ prii: 'prää' });
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
 	});
 
 	describe('Fetching all products', () => {
@@ -160,6 +171,24 @@ describe('routes: products', () => {
 			expect(res.body.purchases.length).to.equal(3);
 		});
 
+		it('should allow buying product even with negative stock', async () => {
+			const oldProduct = await productStore.findByBarcode('6415600025300');
+			expect(oldProduct.stock).to.be.lessThan(0);
+
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/6415600025300/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 1,
+				});
+
+			expect(res.status).to.equal(200);
+
+			const newProduct = await productStore.findByBarcode('6415600025300');
+			expect(newProduct.stock).to.equal(oldProduct.stock - 1);
+		});
+
 		it('should return 404 on nonexistent product', async () => {
 			const res = await chai
 				.request(app)
@@ -187,6 +216,19 @@ describe('routes: products', () => {
 
 			expect(res.status).to.equal(403);
 			expect(res.body.error_code).to.equal('insufficient_funds');
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/6417901011105/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 1.8,
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 });
