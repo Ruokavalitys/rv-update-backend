@@ -121,6 +121,12 @@ describe('routes: admin boxes', () => {
 				});
 
 			expect(res.status).to.equal(201);
+
+			const newBox = res.body.box;
+			expect(newBox).to.exist;
+			expect(newBox.boxBarcode).to.equal('12345678');
+			expect(newBox.itemsPerBox).to.equal(3);
+			expect(newBox.product.barcode).to.equal('6415600540889');
 		});
 
 		it('should error if box barcode is already taken', async () => {
@@ -230,6 +236,11 @@ describe('routes: admin boxes', () => {
 				});
 
 			expect(res.status).to.equal(200);
+
+			const updatedBox = res.body.box;
+			expect(updatedBox).to.exist;
+			expect(updatedBox.itemsPerBox).to.equal(49);
+			expect(updatedBox.product.barcode).to.equal('6415600540889');
 		});
 
 		it('should error on nonexistent box', async () => {
@@ -317,12 +328,19 @@ describe('routes: admin boxes', () => {
 		});
 
 		it('should return the deleted box', async () => {
+			const originalBox = await boxStore.findByBoxBarcode('01880335');
+
 			const res = await chai
 				.request(app)
 				.delete('/api/v1/admin/boxes/01880335')
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+
+			const deletedBox = res.body.deletedBox;
+			expect(deletedBox).to.exist;
+			expect(deletedBox.product.barcode).to.equal(originalBox.product.barcode);
+			expect(deletedBox.itemsPerBox).to.equal(originalBox.itemsPerBox);
 		});
 
 		it('should not be called by unprivileged user', async () => {

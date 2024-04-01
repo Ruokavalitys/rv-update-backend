@@ -125,6 +125,22 @@ describe('routes: admin preferences', () => {
 			expect(post_res.body.preference.value).to.equal(0.25);
 		});
 
+		it('should return the new value', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/preferences/globalDefaultMargin')
+				.set('Authorization', 'Bearer ' + adminToken)
+				.send({
+					value: 0.25,
+				});
+
+			expect(res.status).to.equal(200);
+
+			const updatedPreference = res.body.preference;
+			expect(updatedPreference).to.exist;
+			expect(updatedPreference.value).to.equal(0.25);
+		});
+
 		it('should fail when setting an invalid value', async () => {
 			const res = await chai
 				.request(app)

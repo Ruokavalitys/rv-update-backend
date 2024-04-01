@@ -126,6 +126,12 @@ describe('routes: admin products', () => {
 				});
 
 			expect(res.status).to.equal(201);
+
+			const newProduct = res.body.product;
+			expect(newProduct).to.exist;
+			expect(newProduct.barcode).to.equal('575757575757');
+			expect(newProduct.name).to.equal('Opossumin lihaa');
+			expect(newProduct.category.categoryId).to.equal(24);
 		});
 
 		it('should error if barcode is already taken', async () => {
@@ -248,6 +254,10 @@ describe('routes: admin products', () => {
 				});
 
 			expect(res.status).to.equal(200);
+
+			const updatedProduct = res.body.product;
+			expect(updatedProduct).to.exist;
+			expect(updatedProduct.buyPrice).to.equal(5000);
 		});
 
 		it('should error on nonexistent product', async () => {
@@ -319,12 +329,19 @@ describe('routes: admin products', () => {
 		});
 
 		it('should return the deleted product', async () => {
+			const originalProduct = await productStore.findByBarcode('5053990123506');
+
 			const res = await chai
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+
+			const deletedProduct = res.body.deletedProduct;
+			expect(deletedProduct).to.exist;
+			expect(deletedProduct.name).to.equal(originalProduct.name);
+			expect(deletedProduct.category.categoryId).to.equal(originalProduct.category.categoryId);
 		});
 
 		it("should cause any requests for that product's information to fail", async () => {

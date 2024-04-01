@@ -115,6 +115,8 @@ describe('routes: admin users', () => {
 				});
 
 			expect(res.status).to.equal(200);
+
+			expect(res.body.role).to.equal('ADMIN');
 		});
 
 		it('should error on nonexistent user', async () => {

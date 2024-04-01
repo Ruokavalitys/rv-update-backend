@@ -117,6 +117,10 @@ describe('routes: admin categories', () => {
 				});
 
 			expect(res.status).to.equal(201);
+
+			const newCategory = res.body.category;
+			expect(newCategory).to.exist;
+			expect(newCategory.description).to.equal('Food waste');
 		});
 
 		it('should error on invalid parameters', async () => {
@@ -173,7 +177,10 @@ describe('routes: admin categories', () => {
 				});
 
 			expect(res.status).to.equal(200);
-			expect(res.body.category.description).to.equal('Radioactive waste');
+
+			const updatedCategory = res.body.category;
+			expect(updatedCategory).to.exist;
+			expect(updatedCategory.description).to.equal('Radioactive waste');
 		});
 
 		it('should error on nonexistent category', async () => {
@@ -238,12 +245,21 @@ describe('routes: admin categories', () => {
 		});
 
 		it('should return the deleted category and moved items', async () => {
+			const originalCategory = await categoryStore.findById(20);
+
 			const res = await chai
 				.request(app)
 				.delete('/api/v1/admin/categories/20')
 				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+
+			const deletedCategory = res.body.deletedCategory;
+			expect(deletedCategory).to.exist;
+			expect(deletedCategory.description).to.equal(originalCategory.description);
+			const movedProducts = res.body.movedProducts;
+			expect(movedProducts).to.exist;
+			expect(movedProducts).to.contain('7310960718116');
 		});
 
 		it('should move items to the default category', async () => {
