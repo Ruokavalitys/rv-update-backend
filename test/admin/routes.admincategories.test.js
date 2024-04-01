@@ -163,9 +163,9 @@ describe('routes: admin categories', () => {
 
 			expect(res.status).to.equal(200);
 
-			const newCategory = await categoryStore.findById(20);
-			expect(newCategory).to.exist;
-			expect(newCategory.description).to.equal('Radioactive waste');
+			const updatedCategory = await categoryStore.findById(20);
+			expect(updatedCategory).to.exist;
+			expect(updatedCategory.description).to.equal('Radioactive waste');
 		});
 
 		it('should return the updated category', async () => {

@@ -68,7 +68,7 @@ describe('routes: admin history', () => {
 				expect(res.status).to.equal(200);
 			});
 
-			it('should fail with a nonexsisting id', async () => {
+			it('should fail with a nonexisting id', async () => {
 				const res = await chai
 					.request(app)
 					.get('/api/v1/admin/purchaseHistory/999999')

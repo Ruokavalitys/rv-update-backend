@@ -142,7 +142,7 @@ router.delete('/:categoryId', async (req, res) => {
 		});
 
 		logger.info(
-			'User %s tried to delete non-exiting category with ID %d',
+			'User %s tried to delete non-existing category with ID %d',
 			req.user.username,
 			req.params.categoryId
 		);
