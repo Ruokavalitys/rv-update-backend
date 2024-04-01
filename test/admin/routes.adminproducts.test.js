@@ -230,6 +230,8 @@ describe('routes: admin products', () => {
 		});
 
 		it('should allow modifying only some fields', async () => {
+			const originalProduct = await productStore.findByBarcode('5053990123506');
+
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
@@ -243,6 +245,7 @@ describe('routes: admin products', () => {
 			const updatedProduct = await productStore.findByBarcode('5053990123506');
 			expect(updatedProduct).to.exist;
 			expect(updatedProduct.buyPrice).to.equal(5000);
+			expect(updatedProduct.sellPrice).to.equal(originalProduct.sellPrice);
 		});
 
 		it('should return the updated product', async () => {
@@ -288,6 +291,19 @@ describe('routes: admin products', () => {
 		});
 
 		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/products/5053990123506')
+				.set('Authorization', 'Bearer ' + adminToken)
+				.send({
+					stock: false,
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should error on unknown fields', async () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')

@@ -211,6 +211,8 @@ describe('routes: admin boxes', () => {
 		});
 
 		it('should allow modifying only some fields', async () => {
+			const originalBox = await boxStore.findByBoxBarcode('01880335');
+
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/boxes/01880335')
@@ -224,6 +226,7 @@ describe('routes: admin boxes', () => {
 			const updatedBox = await boxStore.findByBoxBarcode('01880335');
 			expect(updatedBox).to.exist;
 			expect(updatedBox.product.barcode).to.equal('6415600540889');
+			expect(updatedBox.itemsPerBox).to.equal(originalBox.itemsPerBox);
 		});
 
 		it('should return the updated box', async () => {
@@ -280,6 +283,19 @@ describe('routes: admin boxes', () => {
 				.send({
 					itemsPerBox: -1,
 					productBarcode: '6415600540889',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should error on unknown fields', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/boxes/01880335')
+				.set('Authorization', 'Bearer ' + adminToken)
+				.send({
+					abcd: -1,
 				});
 
 			expect(res.status).to.equal(400);

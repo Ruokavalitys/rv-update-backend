@@ -210,6 +210,19 @@ describe('routes: admin categories', () => {
 			expect(res.body.error_code).to.equal('bad_request');
 		});
 
+		it('should error on unknown fields', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/categories/20')
+				.set('Authorization', 'Bearer ' + adminToken)
+				.send({
+					xyz: 'asd',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
 		it('should not be called by unprivileged user', async () => {
 			const res = await chai
 				.request(app)

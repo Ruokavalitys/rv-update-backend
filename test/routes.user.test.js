@@ -131,6 +131,20 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
+		});
+
+		it('should not allow modifying password', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/user')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'supersecret',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should error if no fields are specified', async () => {
