@@ -191,13 +191,13 @@ const buyIn = async (boxBarcode, boxCount) => {
 			.leftJoin('PRICE', 'RVBOX.itembarcode', 'PRICE.barcode')
 			.leftJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 			.where({ 'RVBOX.barcode': boxBarcode, 'PRICE.endtime': null })
-			.first('RVBOX.itemcount', 'PRICE.priceid', 'PRICE.count', 'PRICE.barcode');
+			.first('RVBOX.itemcount', 'PRICE.count', 'PRICE.barcode');
 
 		if (row === undefined) {
 			return undefined;
 		}
 
-		const { count, itemcount, priceid, barcode } = row;
+		const { count, itemcount, barcode } = row;
 
 		const newCount = count + itemcount * boxCount;
 
