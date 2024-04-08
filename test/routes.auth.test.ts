@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 
 import app from '../src/app.js';
 import knex, { test_teardown } from '../src/db/knex.js';
-import userStore from '../src/db/userStore.js';
+import * as userStore from '../src/db/userStore.js';
 import jwt from '../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';

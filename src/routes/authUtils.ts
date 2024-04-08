@@ -1,4 +1,4 @@
-import userStore from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import jwt from '../jwt/token.js';
 import logger from './../logger.js';
 

@@ -5,7 +5,7 @@ import app from '../src/app.js';
 import historyStore from '../src/db/historyStore.js';
 import knex, { test_teardown } from '../src/db/knex.js';
 import productStore from '../src/db/productStore.js';
-import userStore from '../src/db/userStore.js';
+import * as userStore from '../src/db/userStore.js';
 import jwt from '../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';

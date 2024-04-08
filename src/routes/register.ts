@@ -1,5 +1,5 @@
 import express from 'express';
-import userStore from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import logger from './../logger.js';
 
 const router = express.Router();

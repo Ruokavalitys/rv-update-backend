@@ -1,11 +1,11 @@
 import type { Request } from 'express';
-import userStore, { type user } from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import jwt from '../jwt/token.js';
 import logger from '../logger.js';
 import { verifyRole } from './authUtils.js';
 
 export interface Authenticated_request extends Request {
-	user?: user;
+	user?: userStore.user;
 }
 
 const authMiddleware = (requiredRole = null, tokenSecret = process.env.JWT_SECRET) => {

@@ -33,7 +33,7 @@ export const rowToUser = (row): user | undefined => {
 	}
 };
 
-const getUsers = async () => {
+export const getUsers = async () => {
 	const data = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
 		.select(
@@ -49,7 +49,7 @@ const getUsers = async () => {
 	return data.map(rowToUser);
 };
 
-const findById = async (userId) => {
+export const findById = async (userId) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
 		.select(
@@ -67,7 +67,7 @@ const findById = async (userId) => {
 	return rowToUser(row);
 };
 
-const findByRfid = async (rfid) => {
+export const findByRfid = async (rfid) => {
 	// TODO rfid should be changed to use sha256 for compatibility with old rv
 	const rfid_hash = bcrypt.hashSync(rfid, RFID_SALT);
 	const row = await knex('RVPERSON')
@@ -86,7 +86,7 @@ const findByRfid = async (rfid) => {
 		.first();
 	return rowToUser(row);
 };
-const findByUsername = async (username) => {
+export const findByUsername = async (username) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
 		.select(
@@ -104,7 +104,7 @@ const findByUsername = async (username) => {
 	return rowToUser(row);
 };
 
-const findByEmail = async (email) => {
+export const findByEmail = async (email) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
 		.select(
@@ -122,7 +122,7 @@ const findByEmail = async (email) => {
 	return rowToUser(row);
 };
 
-const insertUser = async (userData) => {
+export const insertUser = async (userData) => {
 	const passwordHash = bcrypt.hashSync(userData.password, 11);
 
 	const insertedPersonRows = await knex('RVPERSON')
@@ -149,7 +149,7 @@ const insertUser = async (userData) => {
 	};
 };
 
-const updateUser = async (userId, userData) => {
+export const updateUser = async (userId, userData) => {
 	return await knex.transaction(async (trx) => {
 		const rvpersonFields = deleteUndefinedFields({
 			name: userData.username,
@@ -188,15 +188,15 @@ const updateUser = async (userId, userData) => {
 	});
 };
 
-const verifyPassword = async (password, passwordHash) => {
+export const verifyPassword = async (password, passwordHash) => {
 	return await bcrypt.compare(password, passwordHash);
 };
 
-const verifyRfid = async (rfid, rfidHash) => {
+export const verifyRfid = async (rfid, rfidHash) => {
 	return await bcrypt.compare(rfid, rfidHash);
 };
 
-const recordDeposit = async (userId, amount, type) => {
+export const recordDeposit = async (userId, amount, type) => {
 	if (type != 'cash' && type != 'banktransfer') {
 		throw new Error(`Unknown deposit type: ${type}`);
 	}
@@ -237,18 +237,3 @@ const recordDeposit = async (userId, amount, type) => {
 		};
 	});
 };
-
-const userStore = {
-	getUsers,
-	findById,
-	findByRfid,
-	findByUsername,
-	findByEmail,
-	insertUser,
-	updateUser,
-	verifyPassword,
-	verifyRfid,
-	recordDeposit,
-};
-
-export default userStore;

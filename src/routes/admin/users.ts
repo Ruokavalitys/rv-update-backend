@@ -1,6 +1,6 @@
 import express from 'express';
 import historyStore from '../../db/historyStore.js';
-import userStore, { type user } from '../../db/userStore.js';
+import * as userStore from '../../db/userStore.js';
 import logger from '../../logger.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
 
 interface Users_request extends Authenticated_request {
-	routeUser?: user;
+	routeUser?: userStore.user;
 }
 
 router.param('userId', async (req: Users_request, res, next) => {
