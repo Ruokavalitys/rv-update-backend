@@ -1,4 +1,5 @@
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
+import actions from './actions.js';
 import knex from './knex.js';
 
 export const rowToProduct = (row) => {
@@ -260,7 +261,7 @@ const recordPurchase = async (barcode, userId, count) => {
 				.insert({
 					time: now,
 					count: stock,
-					actionid: 5,
+					actionid: actions.BOUGHT_BY,
 					itemid: productId,
 					userid: userId,
 					priceid1: priceId,

@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
+import actions from './actions.js';
 import knex from './knex.js';
 
 export const RFID_SALT = '$2b$15$yvDy89XRQiv1e4M6Vn2m5e';
@@ -218,7 +219,7 @@ const recordDeposit = async (userId, amount) => {
 			.transacting(trx)
 			.insert({
 				time: now,
-				actionid: 17,
+				actionid: actions.DEPOSITED_MONEY,
 				userid1: userId,
 				userid2: userId,
 				saldhistid: insertedSaldhistRows[0].saldhistid,

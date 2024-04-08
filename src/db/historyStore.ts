@@ -1,3 +1,4 @@
+import actions from './actions.js';
 import knex from './knex.js';
 import { rowToProduct } from './productStore.js';
 import { rowToUser } from './userStore.js';
@@ -48,7 +49,7 @@ const createPurchaseHistoryQuery = () =>
 			'ROLE.role',
 			'SALDOHISTORY.saldo'
 		)
-		.where('ITEMHISTORY.actionid', 5) /* actionid 5 = buy action */
+		.where('ITEMHISTORY.actionid', actions.BOUGHT_BY) /* actionid 5 = buy action */
 		.orderBy([
 			{ column: 'ITEMHISTORY.time', order: 'desc' },
 			{ column: 'ITEMHISTORY.itemhistid', order: 'desc' },
@@ -71,7 +72,7 @@ const createDepositHistoryQuery = () =>
 			'RVPERSON.saldo as currentsaldo',
 			'ROLE.role'
 		)
-		.where('PERSONHIST.actionid', 17) /* actionid 17 = deposit action */
+		.where('PERSONHIST.actionid', actions.DEPOSITED_MONEY) /* actionid 17 = deposit action */
 		.orderBy([
 			{ column: 'PERSONHIST.time', order: 'desc' },
 			{ column: 'PERSONHIST.pershistid', order: 'desc' },

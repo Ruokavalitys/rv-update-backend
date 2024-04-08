@@ -1,9 +1,11 @@
+import actions from '../actions.js';
+
 export const up = async (knex) => {
-	const itemhistory = await knex('ITEMHISTORY').select('saldhistid').where('actionid', 5);
+	const itemhistory = await knex('ITEMHISTORY').select('saldhistid').where('actionid', actions.BOUGHT_BY);
 	const saldohistory = await knex('SALDOHISTORY').select('saldhistid', 'time', 'userid').orderBy(['time', 'userid']);
 	const personhist = await knex('PERSONHIST')
 		.select('pershistid', 'time', 'userid1')
-		.where('actionid', 17)
+		.where('actionid', actions.DEPOSITED_MONEY)
 		.orderBy(['time', 'userid1']);
 
 	/* Saldo event ids that have already been associated with an item event. */

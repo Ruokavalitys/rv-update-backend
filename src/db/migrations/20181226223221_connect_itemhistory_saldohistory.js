@@ -1,3 +1,5 @@
+import actions from '../actions.js';
+
 export const up = async (knex) => {
 	if (await knex.schema.hasColumn('ITEMHISTORY', 'saldhistid')) {
 		return;
@@ -6,7 +8,7 @@ export const up = async (knex) => {
 	const itemhistory = await knex('ITEMHISTORY')
 		.leftJoin('PRICE', 'ITEMHISTORY.priceid1', 'PRICE.priceid')
 		.select('ITEMHISTORY.itemhistid', 'ITEMHISTORY.time', 'ITEMHISTORY.userid', 'PRICE.sellprice')
-		.where('ITEMHISTORY.actionid', 5)
+		.where('ITEMHISTORY.actionid', actions.BOUGHT_BY)
 		.orderBy(['ITEMHISTORY.time', 'ITEMHISTORY.userid', 'PRICE.sellprice']);
 	const saldohistory = await knex('SALDOHISTORY')
 		.select('saldhistid', 'time', 'userid', 'difference')
