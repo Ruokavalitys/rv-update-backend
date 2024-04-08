@@ -194,6 +194,7 @@ components:
         - email
         - moneyBalance
         - role
+        - privacyLevel
       properties: 
         userId: 
           type: integer
@@ -215,6 +216,11 @@ components:
           type: integer
           example: 2000
           description: Balance of the user's account in cents.
+        privacyLevel:
+          type: integer
+          example: 0
+          description: Privacy level of the user, 0 = no restrictions, 1 = hide username, 2 = hide even anonymous data
+          enum: [0, 1, 2]
         role:
           '$ref': '#/components/schemas/Role'
     Category:
@@ -991,6 +997,38 @@ paths:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         404:
           '$ref': '#/components/responses/NotFoundErrorResponse'
+  /api/v1/user/changePrivacylevel:
+    post:
+      summary: |
+        Change the account's privacy level
+        0 = No restrictions
+        1 = Hide username from public (for example, leaderboards)
+        2 = Hide all data from public (for example, list of recent purchases)
+      operationId: changePrivacylevel
+      tags:
+        - normal
+      security:
+        - normalAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - privacyLevel
+              properties:
+                privacyLevel:
+                  type: integer
+                  example: 2
+                  enum: [0,1,2]
+      responses:
+        204:
+          description: Privacy level changed successfully
+        400:
+          '$ref': '#/components/responses/BadRequestErrorResponse'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
   /api/v1/user/changeRfid:
     post:
       summary: Change the account's rfid

@@ -120,6 +120,37 @@ describe('routes: user', () => {
 			expect(res.status).to.equal(409);
 		});
 
+		it('should allow changing privacy level to valid value', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePrivacylevel')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					privacyLevel: 2,
+				});
+
+			expect(res.status).to.equal(204);
+			const res2 = await chai
+				.request(app)
+				.get('/api/v1/user')
+				.set('Authorization', 'Bearer ' + token);
+
+			expect(res2.status).to.equal(200);
+			expect(res2.body.user.privacyLevel).to.equal(2);
+		});
+
+		it('should deny changing privacy level to invalid value', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePrivacylevel')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					privacyLevel: 3,
+				});
+
+			expect(res.status).to.equal(400);
+		});
+
 		it('should deny changing email to one already taken', async () => {
 			const res = await chai
 				.request(app)

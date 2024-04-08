@@ -14,6 +14,7 @@ export interface user {
 	role: any;
 	passwordHash: any;
 	rfidHash: any;
+	privacyLevel: number; // 0 = no limits, 1 = hide username from public, 2 = hide all data from public
 }
 
 export const rowToUser = (row): user | undefined => {
@@ -27,41 +28,34 @@ export const rowToUser = (row): user | undefined => {
 			role: row.role,
 			passwordHash: row.pass,
 			rfidHash: row.rfid,
+			privacyLevel: row.privacy_level,
 		};
 	} else {
 		return undefined;
 	}
 };
 
+const user_select_query = [
+	'RVPERSON.userid',
+	'RVPERSON.name',
+	'RVPERSON.realname',
+	'RVPERSON.univident',
+	'RVPERSON.saldo',
+	'ROLE.role',
+	'RVPERSON.pass',
+	'RVPERSON.rfid',
+	'RVPERSON.privacy_level',
+];
+
 export const getUsers = async () => {
-	const data = await knex('RVPERSON')
-		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-		.select(
-			'RVPERSON.userid',
-			'RVPERSON.name',
-			'RVPERSON.realname',
-			'RVPERSON.univident',
-			'RVPERSON.saldo',
-			'ROLE.role',
-			'RVPERSON.pass',
-			'RVPERSON.rfid'
-		);
+	const data = await knex('RVPERSON').leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid').select(user_select_query);
 	return data.map(rowToUser);
 };
 
 export const findById = async (userId) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-		.select(
-			'RVPERSON.userid',
-			'RVPERSON.name',
-			'RVPERSON.realname',
-			'RVPERSON.univident',
-			'RVPERSON.saldo',
-			'ROLE.role',
-			'RVPERSON.pass',
-			'RVPERSON.rfid'
-		)
+		.select(user_select_query)
 		.where('RVPERSON.userid', userId)
 		.first();
 	return rowToUser(row);
@@ -72,16 +66,7 @@ export const findByRfid = async (rfid) => {
 	const rfid_hash = bcrypt.hashSync(rfid, RFID_SALT);
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-		.select(
-			'RVPERSON.userid',
-			'RVPERSON.name',
-			'RVPERSON.realname',
-			'RVPERSON.univident',
-			'RVPERSON.saldo',
-			'ROLE.role',
-			'RVPERSON.pass',
-			'RVPERSON.rfid'
-		)
+		.select(user_select_query)
 		.where('RVPERSON.rfid', rfid_hash)
 		.first();
 	return rowToUser(row);
@@ -89,16 +74,7 @@ export const findByRfid = async (rfid) => {
 export const findByUsername = async (username) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-		.select(
-			'RVPERSON.userid',
-			'RVPERSON.name',
-			'RVPERSON.realname',
-			'RVPERSON.univident',
-			'RVPERSON.saldo',
-			'ROLE.role',
-			'RVPERSON.pass',
-			'RVPERSON.rfid'
-		)
+		.select(user_select_query)
 		.where('RVPERSON.name', username)
 		.first();
 	return rowToUser(row);
@@ -107,16 +83,7 @@ export const findByUsername = async (username) => {
 export const findByEmail = async (email) => {
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-		.select(
-			'RVPERSON.userid',
-			'RVPERSON.name',
-			'RVPERSON.realname',
-			'RVPERSON.univident',
-			'RVPERSON.saldo',
-			'ROLE.role',
-			'RVPERSON.pass',
-			'RVPERSON.rfid'
-		)
+		.select(user_select_query)
 		.where('RVPERSON.univident', email)
 		.first();
 	return rowToUser(row);
@@ -146,6 +113,7 @@ export const insertUser = async (userData) => {
 		moneyBalance: 0,
 		role: 'USER1',
 		passwordHash: passwordHash,
+		privacyLevel: 0,
 	};
 };
 
@@ -156,6 +124,7 @@ export const updateUser = async (userId, userData) => {
 			realname: userData.fullName,
 			univident: userData.email,
 			saldo: userData.moneyBalance,
+			privacy_level: userData.privacyLevel,
 		});
 		if (userData.password !== undefined) {
 			rvpersonFields.pass = bcrypt.hashSync(userData.password, 11);
@@ -172,16 +141,7 @@ export const updateUser = async (userId, userData) => {
 		const userRow = await knex('RVPERSON')
 			.transacting(trx)
 			.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
-			.select(
-				'RVPERSON.userid',
-				'RVPERSON.name',
-				'RVPERSON.realname',
-				'RVPERSON.univident',
-				'RVPERSON.saldo',
-				'ROLE.role',
-				'RVPERSON.pass',
-				'RVPERSON.rfid'
-			)
+			.select(user_select_query)
 			.where('RVPERSON.userid', userId)
 			.first();
 		return rowToUser(userRow);

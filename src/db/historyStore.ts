@@ -48,7 +48,8 @@ const createPurchaseHistoryQuery = () =>
 			'RVPERSON.univident',
 			'RVPERSON.saldo as currentsaldo',
 			'ROLE.role',
-			'SALDOHISTORY.saldo'
+			'SALDOHISTORY.saldo',
+			'RVPERSON.privacy_level'
 		)
 		.where('ITEMHISTORY.actionid', actions.BOUGHT_BY) /* actionid 5 = buy action */
 		.orderBy([
@@ -72,7 +73,8 @@ const createDepositHistoryQuery = () =>
 			'RVPERSON.univident',
 			'RVPERSON.saldo as currentsaldo',
 			'ROLE.role',
-			'PERSONHIST.actionid'
+			'PERSONHIST.actionid',
+			'RVPERSON.privacy_level'
 		)
 		.where('PERSONHIST.actionid', actions.DEPOSITED_MONEY_CASH) /* actionid 17 = deposit action */
 		.orWhere('PERSONHIST.actionid', actions.DEPOSITED_MONEY_BANKTRANSFER)

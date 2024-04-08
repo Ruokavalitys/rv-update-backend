@@ -48,6 +48,7 @@ router.post('/', async (req, res) => {
 			email: newUser.email,
 			moneyBalance: newUser.moneyBalance,
 			role: newUser.role,
+			privacyLevel: newUser.privacyLevel,
 		},
 	});
 });

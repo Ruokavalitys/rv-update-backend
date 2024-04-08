@@ -43,6 +43,7 @@ router.get('/', async (req: Users_request, res) => {
 				email: user.email,
 				moneyBalance: user.moneyBalance,
 				role: user.role,
+				privacyLevel: user.privacyLevel,
 			};
 		});
 
@@ -70,6 +71,7 @@ router.get('/:userId(\\d+)', async (req: Users_request, res) => {
 			email: req.routeUser.email,
 			moneyBalance: req.routeUser.moneyBalance,
 			role: req.routeUser.role,
+			privacyLevel: req.routeUser.privacyLevel,
 		},
 	});
 });
