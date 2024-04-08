@@ -35,8 +35,10 @@ const searchProducts = async (query) => {
 			'PRICE.sellprice',
 			'PRICE.count'
 		)
-		.whereILike('RVITEM.descr', `%${query}%`)
-		.orWhereILike('PRICE.barcode', `%${query}%`);
+		.where((queryBuilder) => {
+			queryBuilder.whereILike('RVITEM.descr', `%${query}%`).orWhereILike('PRICE.barcode', `%${query}%`);
+		})
+		.andWhere('PRICE.endtime', null);
 	return data.map(rowToProduct);
 };
 

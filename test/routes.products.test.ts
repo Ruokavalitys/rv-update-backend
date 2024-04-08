@@ -34,7 +34,16 @@ describe('routes: products', () => {
 	});
 
 	describe('Searching products', () => {
-		it('should return matching product if found', async () => {
+		it('should return barcode matching product if found', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ query: '6415600026994' });
+			expect(res.status).to.equal(200);
+			expect(res.body.products.length).to.equal(1);
+		});
+		it('should return name matching product if found', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/products/search')
