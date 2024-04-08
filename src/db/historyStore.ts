@@ -19,6 +19,7 @@ const rowToDeposit = (row) => {
 		time: new Date(row.time).toISOString(),
 		amount: row.difference,
 		balanceAfter: row.saldo,
+		type: row.actionid,
 	};
 };
 
@@ -70,9 +71,12 @@ const createDepositHistoryQuery = () =>
 			'RVPERSON.realname',
 			'RVPERSON.univident',
 			'RVPERSON.saldo as currentsaldo',
-			'ROLE.role'
+			'ROLE.role',
+			'PERSONHIST.actionid'
 		)
-		.where('PERSONHIST.actionid', actions.DEPOSITED_MONEY) /* actionid 17 = deposit action */
+		.where('PERSONHIST.actionid', actions.DEPOSITED_MONEY_CASH) /* actionid 17 = deposit action */
+		.orWhere('PERSONHIST.actionid', actions.DEPOSITED_MONEY_BANKTRANSFER)
+		.orWhere('PERSONHIST.actionid', actions.DEPOSITED_MONEY)
 		.orderBy([
 			{ column: 'PERSONHIST.time', order: 'desc' },
 			{ column: 'PERSONHIST.pershistid', order: 'desc' },

@@ -196,7 +196,10 @@ const verifyRfid = async (rfid, rfidHash) => {
 	return await bcrypt.compare(rfid, rfidHash);
 };
 
-const recordDeposit = async (userId, amount) => {
+const recordDeposit = async (userId, amount, type) => {
+	if (type != 'cash' && type != 'banktransfer') {
+		throw new Error(`Unknown deposit type: ${type}`);
+	}
 	return await knex.transaction(async (trx) => {
 		const now = new Date();
 
@@ -219,7 +222,7 @@ const recordDeposit = async (userId, amount) => {
 			.transacting(trx)
 			.insert({
 				time: now,
-				actionid: actions.DEPOSITED_MONEY,
+				actionid: type == 'cash' ? actions.DEPOSITED_MONEY_CASH : actions.DEPOSITED_MONEY_BANKTRANSFER,
 				userid1: userId,
 				userid2: userId,
 				saldhistid: insertedSaldhistRows[0].saldhistid,

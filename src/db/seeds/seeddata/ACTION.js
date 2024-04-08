@@ -99,4 +99,12 @@ export const actions = [
 		action: 'CHANGED BOX ITEM COUNT',
 		actionid: 25,
 	},
+	{
+		action: 'DEPOSITED MONEY CASH',
+		actionid: 26,
+	},
+	{
+		action: 'DEPOSITED MONEY BANKTRANSFER',
+		actionid: 27,
+	},
 ];

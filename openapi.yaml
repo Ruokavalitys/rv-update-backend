@@ -867,10 +867,14 @@ paths:
               type: object
               required: 
                 - amount
+                - type
               properties: 
                 amount: 
                   type: integer
                   minimum: 1
+                type:
+                  type: string
+                  enum: ["cash", "banktransfer"]
   /api/v1/user/purchaseHistory: 
     get: 
       summary: Get list of the authenticated user's past purchases

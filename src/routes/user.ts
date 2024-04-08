@@ -105,8 +105,9 @@ router.patch('/', async (req: Authenticated_request, res) => {
 router.post('/deposit', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const amount = req.body.amount;
+	const type = req.body.type;
 
-	const deposit = await userStore.recordDeposit(user.userId, amount);
+	const deposit = await userStore.recordDeposit(user.userId, amount, type);
 
 	logger.info('User %s deposited %s cents', user.username, amount);
 	res.status(200).json({

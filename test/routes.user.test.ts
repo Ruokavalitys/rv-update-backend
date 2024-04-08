@@ -8,6 +8,7 @@ import userStore from '../src/db/userStore.js';
 import jwt from '../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
+import actions from '../src/db/actions.js';
 
 const expect = chai.expect;
 
@@ -143,13 +144,14 @@ describe('routes: user', () => {
 	});
 
 	describe('Depositing money', () => {
-		it('should increase account balance', async () => {
+		it('should increase account balance on cash deposit', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/user/deposit')
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: 150,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(200);
@@ -159,6 +161,50 @@ describe('routes: user', () => {
 			const user = await userStore.findById(1);
 
 			expect(user.moneyBalance).to.equal(650);
+		});
+
+		it('should increase account balance on banktransfer deposit', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+					type: 'banktransfer',
+				});
+
+			expect(res.status).to.equal(200);
+
+			expect(res.body.accountBalance).to.equal(650);
+
+			const user = await userStore.findById(1);
+
+			expect(user.moneyBalance).to.equal(650);
+		});
+
+		it('should error on depositing without type', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+				});
+
+			expect(res.status).to.equal(400);
+		});
+
+		it('should error on depositing with unknown type', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+					type: 'bitcoin',
+				});
+
+			expect(res.status).to.equal(400);
 		});
 
 		it('should create an event into deposit history', async () => {
@@ -171,6 +217,7 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: 2371,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(200);
@@ -182,6 +229,7 @@ describe('routes: user', () => {
 			const depositEvent = newDepositHistory[0];
 
 			expect(depositEvent.amount).to.equal(2371);
+			expect(depositEvent.type).to.equal(actions.DEPOSITED_MONEY_CASH);
 			expect(depositEvent.balanceAfter).to.equal(res.body.accountBalance);
 		});
 
@@ -192,6 +240,7 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: -200,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(400);
