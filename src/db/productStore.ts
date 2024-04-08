@@ -314,7 +314,11 @@ const deleteProduct = async (barcode) => {
 };
 
 const buyIn = async (barcode, count) => {
-	const row = await knex('PRICE').where({ barcode }).increment({ count }).returning(['count']);
+	const row = await knex('PRICE')
+		.where({ barcode })
+		.andWhere('PRICE.endtime', null)
+		.increment({ count })
+		.returning(['count']);
 
 	if (row.length === 0) {
 		return undefined;
