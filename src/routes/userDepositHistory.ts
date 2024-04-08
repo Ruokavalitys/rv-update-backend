@@ -1,5 +1,5 @@
 import express from 'express';
-import historyStore from '../db/historyStore.js';
+import * as historyStore from '../db/historyStore.js';
 import logger from '../logger.js';
 import authMiddleware, { type Authenticated_request } from './authMiddleware.js';
 

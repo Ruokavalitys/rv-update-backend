@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import app from '../src/app.js';
-import historyStore from '../src/db/historyStore.js';
+import * as historyStore from '../src/db/historyStore.js';
 import knex, { test_teardown } from '../src/db/knex.js';
 import * as userStore from '../src/db/userStore.js';
 import jwt from '../src/jwt/token.js';

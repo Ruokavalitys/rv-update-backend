@@ -1,7 +1,7 @@
 import express from 'express';
-import categoryStore from '../../db/categoryStore.js';
-import historyStore from '../../db/historyStore.js';
-import productStore from '../../db/productStore.js';
+import * as categoryStore from '../../db/categoryStore.js';
+import * as historyStore from '../../db/historyStore.js';
+import * as productStore from '../../db/productStore.js';
 import logger from '../../logger.js';
 import { deleteUndefinedFields } from '../../utils/objectUtils.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';

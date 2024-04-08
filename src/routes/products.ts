@@ -1,5 +1,5 @@
 import express from 'express';
-import productStore from '../db/productStore.js';
+import * as productStore from '../db/productStore.js';
 import logger from '../logger.js';
 import authMiddleware, { type Authenticated_request } from './authMiddleware.js';
 

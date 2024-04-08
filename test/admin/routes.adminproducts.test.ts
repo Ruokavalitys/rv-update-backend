@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../src/app.js';
 import knex, { test_teardown } from '../../src/db/knex.js';
-import productStore from '../../src/db/productStore.js';
+import * as productStore from '../../src/db/productStore.js';
 import jwt from '../../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';

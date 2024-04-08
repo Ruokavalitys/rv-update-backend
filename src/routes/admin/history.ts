@@ -1,5 +1,5 @@
 import express from 'express';
-import historyStore from '../../db/historyStore.js';
+import * as historyStore from '../../db/historyStore.js';
 import authMiddleware from '../authMiddleware.js';
 
 const router = express.Router();

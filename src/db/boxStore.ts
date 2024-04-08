@@ -26,7 +26,7 @@ const rowToBox = (row) => {
 /**
  * Retrieves all boxes and their associated products.
  */
-const getBoxes = async () => {
+export const getBoxes = async () => {
 	const data = await knex('RVBOX')
 		.leftJoin('PRICE', 'RVBOX.itembarcode', 'PRICE.barcode')
 		.leftJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
@@ -49,7 +49,7 @@ const getBoxes = async () => {
 /**
  * Finds a box by its barcode.
  */
-const findByBoxBarcode = async (boxBarcode) => {
+export const findByBoxBarcode = async (boxBarcode) => {
 	const row = await knex('RVBOX')
 		.leftJoin('PRICE', 'RVBOX.itembarcode', 'PRICE.barcode')
 		.leftJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
@@ -79,7 +79,7 @@ const findByBoxBarcode = async (boxBarcode) => {
 /**
  * Creates a new box for a product.
  */
-const insertBox = async (boxData) => {
+export const insertBox = async (boxData) => {
 	return await knex.transaction(async (trx) => {
 		await knex('RVBOX').transacting(trx).insert({
 			barcode: boxData.boxBarcode,
@@ -121,7 +121,7 @@ const insertBox = async (boxData) => {
 	});
 };
 
-const updateBox = async (boxBarcode, boxData) => {
+export const updateBox = async (boxBarcode, boxData) => {
 	return await knex.transaction(async (trx) => {
 		const rvboxFields = deleteUndefinedFields({
 			itembarcode: boxData.productBarcode,
@@ -153,7 +153,7 @@ const updateBox = async (boxBarcode, boxData) => {
 	});
 };
 
-const deleteBox = async (boxBarcode) => {
+export const deleteBox = async (boxBarcode) => {
 	return await knex.transaction(async (trx) => {
 		const box = await knex('RVBOX')
 			.transacting(trx)
@@ -184,7 +184,7 @@ const deleteBox = async (boxBarcode) => {
 	});
 };
 
-const buyIn = async (boxBarcode, boxCount) => {
+export const buyIn = async (boxBarcode, boxCount) => {
 	return await knex.transaction(async (trx) => {
 		const row = await knex('RVBOX')
 			.transacting(trx)
@@ -209,14 +209,3 @@ const buyIn = async (boxBarcode, boxCount) => {
 		return newCount;
 	});
 };
-
-const boxStore = {
-	getBoxes,
-	findByBoxBarcode,
-	insertBox,
-	updateBox,
-	deleteBox,
-	buyIn,
-};
-
-export default boxStore;

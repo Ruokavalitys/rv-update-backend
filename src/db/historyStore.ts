@@ -23,7 +23,7 @@ const rowToDeposit = (row) => {
 	};
 };
 
-const createPurchaseHistoryQuery = () =>
+export const createPurchaseHistoryQuery = () =>
 	knex('ITEMHISTORY')
 		.leftJoin('RVITEM', 'ITEMHISTORY.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -57,7 +57,7 @@ const createPurchaseHistoryQuery = () =>
 			{ column: 'ITEMHISTORY.itemhistid', order: 'desc' },
 		]);
 
-const createDepositHistoryQuery = () =>
+export const createDepositHistoryQuery = () =>
 	knex('PERSONHIST')
 		.leftJoin('SALDOHISTORY', 'PERSONHIST.saldhistid', 'SALDOHISTORY.saldhistid')
 		.leftJoin('RVPERSON', 'PERSONHIST.userid1', 'RVPERSON.userid')
@@ -84,7 +84,7 @@ const createDepositHistoryQuery = () =>
 			{ column: 'PERSONHIST.pershistid', order: 'desc' },
 		]);
 
-const getPurchaseHistory = async () => {
+export const getPurchaseHistory = async () => {
 	const data = await createPurchaseHistoryQuery();
 
 	return data.map((row) => {
@@ -96,7 +96,7 @@ const getPurchaseHistory = async () => {
 	});
 };
 
-const getUserPurchaseHistory = async (userId) => {
+export const getUserPurchaseHistory = async (userId) => {
 	const data = await createPurchaseHistoryQuery().andWhere('ITEMHISTORY.userid', userId);
 
 	return data.map((row) => {
@@ -107,7 +107,7 @@ const getUserPurchaseHistory = async (userId) => {
 	});
 };
 
-const getProductPurchaseHistory = async (barcode) => {
+export const getProductPurchaseHistory = async (barcode) => {
 	const data = await createPurchaseHistoryQuery().andWhere('PRICE.barcode', barcode);
 
 	return data.map((row) => {
@@ -118,7 +118,7 @@ const getProductPurchaseHistory = async (barcode) => {
 	});
 };
 
-const findPurchaseById = async (purchaseId) => {
+export const findPurchaseById = async (purchaseId) => {
 	const row = await createPurchaseHistoryQuery().andWhere('ITEMHISTORY.itemhistid', purchaseId).first();
 
 	if (row !== undefined) {
@@ -132,7 +132,7 @@ const findPurchaseById = async (purchaseId) => {
 	}
 };
 
-const getDepositHistory = async () => {
+export const getDepositHistory = async () => {
 	const data = await createDepositHistoryQuery();
 
 	return data.map((row) => {
@@ -143,13 +143,13 @@ const getDepositHistory = async () => {
 	});
 };
 
-const getUserDepositHistory = async (userId) => {
+export const getUserDepositHistory = async (userId) => {
 	const data = await createDepositHistoryQuery().andWhere('PERSONHIST.userid1', userId);
 
 	return data.map(rowToDeposit);
 };
 
-const findDepositById = async (depositId) => {
+export const findDepositById = async (depositId) => {
 	const row = await createDepositHistoryQuery().andWhere('PERSONHIST.pershistid', depositId).first();
 
 	if (row !== undefined) {
@@ -161,15 +161,3 @@ const findDepositById = async (depositId) => {
 		return undefined;
 	}
 };
-
-const historyStore = {
-	getPurchaseHistory,
-	getUserPurchaseHistory,
-	getProductPurchaseHistory,
-	findPurchaseById,
-	getDepositHistory,
-	getUserDepositHistory,
-	findDepositById,
-};
-
-export default historyStore;

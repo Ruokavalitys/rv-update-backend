@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import app from '../../src/app.js';
-import boxStore from '../../src/db/boxStore.js';
+import * as boxStore from '../../src/db/boxStore.js';
 import knex, { test_teardown } from '../../src/db/knex.js';
 import jwt from '../../src/jwt/token.js';
 

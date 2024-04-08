@@ -23,7 +23,7 @@ export const rowToProduct = (row) => {
 /**
  * Return all products with match in barcode or description
  */
-const searchProducts = async (query) => {
+export const searchProducts = async (query) => {
 	const data = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -46,7 +46,7 @@ const searchProducts = async (query) => {
 /**
  * Returns all products and their stock quantities, if available.
  */
-const getProducts = async () => {
+export const getProducts = async () => {
 	const data = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -67,7 +67,7 @@ const getProducts = async () => {
 /**
  * Finds a product by its barcode.
  */
-const findByBarcode = async (barcode) => {
+export const findByBarcode = async (barcode) => {
 	const row = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -94,7 +94,7 @@ const findByBarcode = async (barcode) => {
 /**
  * Creates a new product if given barcode is not in use.
  */
-const insertProduct = async (productData, userId) => {
+export const insertProduct = async (productData, userId) => {
 	return await knex.transaction(async (trx) => {
 		const insertedRows = await knex('RVITEM')
 			.transacting(trx)
@@ -138,7 +138,7 @@ const insertProduct = async (productData, userId) => {
 /**
  * Updates a product's information
  */
-const updateProduct = async (barcode, productData, userId) => {
+export const updateProduct = async (barcode, productData, userId) => {
 	/* productData may have fields { name, categoryId, buyPrice, sellPrice, stock } */
 	return await knex.transaction(async (trx) => {
 		const rvitemFields = deleteUndefinedFields({
@@ -213,7 +213,7 @@ const updateProduct = async (barcode, productData, userId) => {
 /**
  * Records a product purchase in the database.
  */
-const recordPurchase = async (barcode, userId, count) => {
+export const recordPurchase = async (barcode, userId, count) => {
 	return await knex.transaction(async (trx) => {
 		const now = new Date();
 
@@ -283,7 +283,7 @@ const recordPurchase = async (barcode, userId, count) => {
 	});
 };
 
-const deleteProduct = async (barcode) => {
+export const deleteProduct = async (barcode) => {
 	return await knex.transaction(async (trx) => {
 		const row = await knex('PRICE')
 			.transacting(trx)
@@ -313,7 +313,7 @@ const deleteProduct = async (barcode) => {
 	});
 };
 
-const buyIn = async (barcode, count) => {
+export const buyIn = async (barcode, count) => {
 	const row = await knex('PRICE')
 		.where({ barcode })
 		.andWhere('PRICE.endtime', null)
@@ -326,16 +326,3 @@ const buyIn = async (barcode, count) => {
 
 	return row[0].count;
 };
-
-const productStore = {
-	searchProducts,
-	getProducts,
-	findByBarcode,
-	insertProduct,
-	updateProduct,
-	recordPurchase,
-	deleteProduct,
-	buyIn,
-};
-
-export default productStore;
