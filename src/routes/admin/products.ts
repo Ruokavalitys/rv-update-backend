@@ -232,7 +232,7 @@ router.post('/:barcode(\\d{1,14})/buyIn', async (req: Products_requests, res) =>
 	const barcode = req.params.barcode;
 	const { count, buyPrice, sellPrice } = req.body;
 
-	const stock = await productStore.buyIn(barcode, count);
+	const stock = await productStore.buyIn(barcode, count, req.user.userId);
 
 	logger.info(
 		"User %s bought in %d items of product '%s' (%s)",

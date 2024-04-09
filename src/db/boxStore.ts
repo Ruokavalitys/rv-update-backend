@@ -1,4 +1,5 @@
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
+import actions from './actions.js';
 import knex from './knex.js';
 
 const rowToBox = (row) => {
@@ -184,7 +185,7 @@ export const deleteBox = async (boxBarcode) => {
 	});
 };
 
-export const buyIn = async (boxBarcode, boxCount) => {
+export const buyIn = async (boxBarcode, boxCount, userId) => {
 	return await knex.transaction(async (trx) => {
 		const row = await knex('RVBOX')
 			.transacting(trx)
@@ -201,10 +202,20 @@ export const buyIn = async (boxBarcode, boxCount) => {
 
 		const newCount = count + itemcount * boxCount;
 
-		await knex('PRICE')
+		const price_row = await knex('PRICE')
 			.transacting(trx)
 			.update({ count: newCount })
-			.where({ 'PRICE.barcode': barcode, 'PRICE.endtime': null });
+			.where({ 'PRICE.barcode': barcode, 'PRICE.endtime': null })
+			.returning(['priceid', 'itemid']);
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: new Date(),
+			count: newCount,
+			actionid: actions.CHANGED_COUNT_OR_INVENTORIED_BUT_NOT_BOUGHT,
+			itemid: price_row[0].itemid,
+			userid: userId,
+			priceid1: price_row[0].priceid,
+		});
 
 		return newCount;
 	});

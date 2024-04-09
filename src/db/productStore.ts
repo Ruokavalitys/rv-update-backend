@@ -313,16 +313,30 @@ export const deleteProduct = async (barcode) => {
 	});
 };
 
-export const buyIn = async (barcode, count) => {
-	const row = await knex('PRICE')
-		.where({ barcode })
-		.andWhere('PRICE.endtime', null)
-		.increment({ count })
-		.returning(['count']);
+export const buyIn = async (barcode, count, userId) => {
+	return await knex.transaction(async (trx) => {
+		const row = await knex('PRICE')
+			.transacting(trx)
+			.where({ barcode })
+			.andWhere('PRICE.endtime', null)
+			.increment({ count })
+			.returning(['priceid', 'itemid', 'count']);
 
-	if (row.length === 0) {
-		return undefined;
-	}
+		if (row.length === 0) {
+			return undefined;
+		}
 
-	return row[0].count;
+		const newStock = row[0].count;
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: new Date(),
+			count: newStock,
+			actionid: actions.CHANGED_COUNT_OR_INVENTORIED_BUT_NOT_BOUGHT,
+			itemid: row[0].itemid,
+			userid: userId,
+			priceid1: row[0].priceid,
+		});
+
+		return newStock;
+	});
 };

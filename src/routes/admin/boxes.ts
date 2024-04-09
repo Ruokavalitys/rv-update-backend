@@ -213,7 +213,7 @@ router.post('/:boxBarcode(\\d{1,14})/buyIn', async (req: Authenticated_request, 
 		product: { sellPrice: oldsellprice, buyPrice: oldbuyprice },
 	} = box;
 
-	const stock = await boxStore.buyIn(boxBarcode, req.body.boxCount);
+	const stock = await boxStore.buyIn(boxBarcode, req.body.boxCount, req.user.userId);
 
 	logger.info(
 		"User %s bought in %d boxes (%s) - total of %d items of product '%s' (%s)",
