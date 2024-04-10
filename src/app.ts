@@ -10,7 +10,6 @@ import admin_boxes from './routes/admin/boxes.js';
 import admin_categories from './routes/admin/categories.js';
 import admin_default_margin from './routes/admin/default_margin.js';
 import admin_history from './routes/admin/history.js';
-import admin_preferences from './routes/admin/preferences.js';
 import admin_products from './routes/admin/products.js';
 import admin_users from './routes/admin/users.js';
 import auth_route from './routes/auth.js';
@@ -53,7 +52,6 @@ app.use('/api/v1/admin/boxes', admin_boxes);
 app.use('/api/v1/admin/categories', admin_categories);
 app.use('/api/v1/admin/users', admin_users);
 app.use('/api/v1/admin', admin_history);
-app.use('/api/v1/admin/preferences', admin_preferences);
 app.use('/api/v1/test/reset_data', api_reset_route);
 
 app.use((error, _req, res, next) => {
