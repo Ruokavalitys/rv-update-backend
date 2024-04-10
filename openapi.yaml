@@ -269,6 +269,7 @@ components:
                 type: string
                 enum:
                   - not_authorized
+                  - invalid_token
               message:
                 type: string
                 example: Not authorized
