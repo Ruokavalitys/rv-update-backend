@@ -107,4 +107,8 @@ export const actions = [
 		action: 'DEPOSITED MONEY BANKTRANSFER',
 		actionid: 27,
 	},
+	{
+		action: 'PRODUCT RETURNED',
+		actionid: 28,
+	},
 ];

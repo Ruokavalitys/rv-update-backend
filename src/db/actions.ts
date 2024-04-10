@@ -27,6 +27,7 @@ const actions = {
 	CHANGED_BOX_ITEM_COUNT: 25,
 	DEPOSITED_MONEY_CASH: 26,
 	DEPOSITED_MONEY_BANKTRANSFER: 27,
+	PRODUCT_RETURNED: 28,
 };
 
 export default actions;

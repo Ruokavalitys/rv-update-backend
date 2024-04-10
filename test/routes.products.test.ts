@@ -192,4 +192,117 @@ describe('routes: products', () => {
 			expect(res.body.error_code).to.equal('insufficient_funds');
 		});
 	});
+	describe('Returning a product', () => {
+		it('should increase account balance and product stock', async () => {
+			const oldUser = await userStore.findByUsername('normal_user');
+			const oldProduct = await productStore.findByBarcode('8855702006834');
+
+			const res1 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 1,
+				});
+
+			expect(res1.status).to.equal(200);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+			expect(res2.status).to.equal(200);
+
+			const newUser = await userStore.findByUsername('normal_user');
+			const newProduct = await productStore.findByBarcode('8855702006834');
+
+			expect(newUser.moneyBalance).to.equal(oldUser.moneyBalance);
+
+			expect(newProduct.stock).to.equal(oldProduct.stock);
+		});
+
+		it('twice should increase account balance and product stock twice', async () => {
+			const oldUser = await userStore.findByUsername('normal_user');
+			const oldProduct = await productStore.findByBarcode('8855702006834');
+
+			const res1 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 2,
+				});
+
+			expect(res1.status).to.equal(200);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+			expect(res2.status).to.equal(200);
+
+			const res3 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+			expect(res3.status).to.equal(200);
+
+			const newUser = await userStore.findByUsername('normal_user');
+			const newProduct = await productStore.findByBarcode('8855702006834');
+
+			expect(newUser.moneyBalance).to.equal(oldUser.moneyBalance);
+
+			expect(newProduct.stock).to.equal(oldProduct.stock);
+		});
+
+		it('should error 403 on nonexistent product', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/1234567890123/return')
+				.set('Authorization', 'Bearer ' + token);
+
+			expect(res.status).to.equal(403);
+		});
+
+		it('should error if no recent purchases', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+
+			expect(res.status).to.equal(403);
+		});
+
+		it('should not increase funds or stock if recent purchases were already returned', async () => {
+			const res1 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 1,
+				});
+
+			expect(res1.status).to.equal(200);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+			expect(res2.status).to.equal(200);
+
+			const oldUser = await userStore.findByUsername('normal_user');
+			const oldProduct = await productStore.findByBarcode('8855702006834');
+
+			const res3 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + token);
+
+			expect(res3.status).to.equal(403);
+
+			const newUser = await userStore.findByUsername('normal_user');
+			const newProduct = await productStore.findByBarcode('8855702006834');
+
+			expect(newUser.moneyBalance).to.equal(oldUser.moneyBalance);
+
+			expect(newProduct.stock).to.equal(oldProduct.stock);
+		});
+	});
 });

@@ -590,6 +590,39 @@ paths:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         404:
           '$ref': '#/components/responses/NotFoundErrorResponse'
+  /api/v1/products/{barcode}/return: 
+    post:
+      summary: Return a product if the same product was bought within 5 minutes and is not yet returned
+      operationId: returnProduct
+      tags:
+        - normal
+      security:
+        - normalAccessToken: []
+      parameters: 
+        - name: barcode
+          description: Uniquely identifying barcode of the product.
+          required: true
+          in: path
+          schema: 
+            type: string
+      responses: 
+        200:
+          description: Request successful
+        400:
+          '$ref': '#/components/responses/BadRequestErrorResponse'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        403:
+          description: No recent non-returned purchases found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
   /api/v1/products/{barcode}/purchase: 
     post:
       summary: Purchase a prouct

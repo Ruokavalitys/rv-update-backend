@@ -283,6 +283,84 @@ export const recordPurchase = async (barcode, userId, count) => {
 	});
 };
 
+/**
+ * Attempt to return a recently bought product
+ * may fail if recent non-returned purchases were not found
+ */
+export const returnPurchase = async (barcode: string, userId: number): Promise<{ success: boolean }> => {
+	return await knex.transaction(async (trx) => {
+		const now = new Date();
+
+		// find if user has non returned purchases
+		const product = await knex('PRICE')
+			.transacting(trx)
+			.andWhere('barcode', barcode)
+			.andWhere('endtime', null)
+			.first('priceid', 'itemid');
+		if (!product) {
+			return { success: false };
+		}
+
+		const fiveMinutesAgo = new Date();
+		fiveMinutesAgo.setTime(now.getTime() - 1000 * 60 * 5);
+		const recentPurchases = await knex('ITEMHISTORY')
+			.transacting(trx)
+			.innerJoin('SALDOHISTORY', 'ITEMHISTORY.saldhistid', 'SALDOHISTORY.saldhistid')
+			.leftJoin('ITEMHISTORY as ih2', 'ih2.itemhistid2', 'ITEMHISTORY.itemhistid')
+			.andWhere('ITEMHISTORY.actionid', actions.BOUGHT_BY)
+			.andWhere('ITEMHISTORY.userid', userId)
+			.andWhere('ITEMHISTORY.itemid', product.itemid)
+			.andWhere('ITEMHISTORY.time', '>', fiveMinutesAgo)
+			.andWhere('ih2.itemhistid', null)
+			.orderBy('ITEMHISTORY.time', 'desc')
+			.first('ITEMHISTORY.itemhistid', 'SALDOHISTORY.difference');
+
+		if (!recentPurchases) {
+			return { success: false };
+		}
+
+		const updatedPriceRows = await knex('PRICE')
+			.transacting(trx)
+			.innerJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
+			.andWhere('barcode', barcode)
+			.andWhere('endtime', null)
+			.increment({ count: 1 })
+			.returning(['priceid', 'itemid', 'count']);
+
+		const priceId = updatedPriceRows[0].priceid;
+		const productId = updatedPriceRows[0].itemid;
+
+		const updatedPersonRows = await knex('RVPERSON')
+			.transacting(trx)
+			.where({ userid: userId })
+			.increment({ saldo: -recentPurchases.difference })
+			.returning(['saldo']);
+
+		const insertedSaldhistRows = await knex('SALDOHISTORY')
+			.transacting(trx)
+			.insert({
+				userid: userId,
+				time: now,
+				saldo: updatedPersonRows[0].saldo,
+				difference: -recentPurchases.difference,
+			})
+			.returning(['saldhistid']);
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: now,
+			count: updatedPriceRows[0].count,
+			actionid: actions.PRODUCT_RETURNED,
+			itemid: productId,
+			userid: userId,
+			priceid1: priceId,
+			itemhistid2: recentPurchases.itemhistid,
+			saldhistid: insertedSaldhistRows[0].saldhistid,
+		});
+
+		return { success: true };
+	});
+};
+
 export const deleteProduct = async (barcode) => {
 	return await knex.transaction(async (trx) => {
 		const row = await knex('PRICE')

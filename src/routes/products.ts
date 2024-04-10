@@ -130,4 +130,19 @@ router.post('/:barcode(\\d{1,14})/purchase', async (req: Authenticated_request, 
 	}
 });
 
+router.post('/:barcode(\\d{1,14})/return', async (req: Authenticated_request, res) => {
+	const user = req.user;
+	const barcode = req.params.barcode;
+
+	const result = await productStore.returnPurchase(barcode, user.userId);
+
+	if (result.success) {
+		logger.info('User %s returned product %s successfully', user.username, barcode);
+		res.sendStatus(200);
+	} else {
+		logger.info('User %s attempted to return a product %s unsuccessfully', user.username, barcode);
+		res.status(403).json({ message: 'No recent non-returned purchases found for the barcode' });
+	}
+});
+
 export default router;
