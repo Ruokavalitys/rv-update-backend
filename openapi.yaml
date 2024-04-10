@@ -2096,6 +2096,43 @@ paths:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         404:
           '$ref': '#/components/responses/NotFoundErrorResponse'
+  /api/v1/admin/users/{userId}/changePassword: 
+    post: 
+      summary: Update the password of an user
+      operationId: changeUserPassword
+      tags:
+        - admin
+      security:
+        - adminAccessToken: []
+      parameters: 
+        - name: userId
+          description: Unique identifier of the user.
+          required: true
+          in: path
+          schema: 
+            type: integer
+            example: 324
+      responses: 
+        200: 
+          description: User's password changed successfully
+        400:
+          '$ref': '#/components/responses/BadRequestErrorResponse'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        404:
+          '$ref': '#/components/responses/NotFoundErrorResponse'
+      requestBody: 
+        required: true
+        content: 
+          application/json: 
+            schema: 
+              type: object
+              required: 
+                - password
+              properties: 
+                password:
+                  type: string
+                  example: hunter2 
   /api/v1/admin/users/{userId}/changeRole: 
     post: 
       summary: Update the role of a user

@@ -90,6 +90,14 @@ router.post('/:userId(\\d+)/changeRole', async (req: Users_request, res) => {
 	});
 });
 
+router.post('/:userId(\\d+)/changePassword', async (req: Users_request, res) => {
+	await userStore.updateUser(req.routeUser.userId, { password: req.body.password });
+
+	logger.info('User %s changed password of user %s', req.user.username, req.routeUser.userId);
+
+	res.sendStatus(200);
+});
+
 router.get('/:userId(\\d+)/purchaseHistory', async (req: Users_request, res) => {
 	const purchases = await historyStore.getUserPurchaseHistory(req.routeUser.userId);
 

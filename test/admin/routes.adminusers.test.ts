@@ -12,6 +12,10 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
+const user_token = jwt.sign({
+	userId: 1,
+});
+
 const token = jwt.sign(
 	{
 		userId: 2,
@@ -63,6 +67,67 @@ describe('routes: admin users', () => {
 
 			expect(res.status).to.equal(404);
 			expect(res.body.error_code).to.equal('not_found');
+		});
+	});
+
+	describe('Changing user password', () => {
+		it('should change the password', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/users/1/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'lol',
+				});
+
+			expect(res.status).to.equal(200);
+
+			const res2 = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'normal_user',
+				password: 'lol',
+			});
+
+			expect(res2.status).to.equal(200);
+
+			const token2 = jwt.verify(res2.body.accessToken);
+			expect(token2.data.userId).to.exist;
+
+			const user = await userStore.findByUsername('normal_user');
+			expect(token2.data.userId).to.equal(user.userId);
+		});
+
+		it('should error on nonexistent user', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/users/99/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'lol',
+				});
+
+			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/users/1/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should error if non-admin attempting to change password', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/users/1/changePassword')
+				.set('Authorization', 'Bearer ' + user_token)
+				.send({ password: 'lol' });
+
+			expect(res.status).to.equal(401);
 		});
 	});
 
