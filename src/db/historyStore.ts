@@ -84,8 +84,11 @@ export const createDepositHistoryQuery = () =>
 			{ column: 'PERSONHIST.pershistid', order: 'desc' },
 		]);
 
-export const getPurchaseHistory = async () => {
-	const data = await createPurchaseHistoryQuery();
+export const getPurchaseHistory = async (offset?: number, limit?: number) => {
+	let query = createPurchaseHistoryQuery();
+	if (offset) query = query.andWhere('ITEMHISTORY.itemhistid', '<', offset);
+	if (limit) query = query.limit(limit);
+	const data = await query;
 
 	return data.map((row) => {
 		return {
@@ -132,8 +135,11 @@ export const findPurchaseById = async (purchaseId) => {
 	}
 };
 
-export const getDepositHistory = async () => {
-	const data = await createDepositHistoryQuery();
+export const getDepositHistory = async (offset?: number, limit?: number) => {
+	let query = createDepositHistoryQuery();
+	if (offset) query = query.andWhere('PERSONHIST.pershistid', '<', offset);
+	if (limit) query = query.limit(limit);
+	const data = await query;
 
 	return data.map((row) => {
 		return {

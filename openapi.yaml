@@ -940,6 +940,19 @@ paths:
                       - '$ref': '#/components/schemas/PurchaseEventBase'
                       - '$ref': '#/components/schemas/PurchaseEventProduct'
                       - '$ref': '#/components/schemas/PurchaseEventBalance'
+                  offset:
+                    description: |
+                      Only return events with lesser history id (results before offset id).
+                      If omitted, starts from the latest result.
+                    type: integer
+                    example: 1237
+                  limit:
+                    description: | 
+                      Return only N latest results.
+                      If omitted, returns all results.
+                    type: integer
+                    example: 50
+                    minimum: 1
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
   /api/v1/user/purchaseHistory/{purchaseId}: 
@@ -998,6 +1011,19 @@ paths:
                     type: array
                     items:
                       '$ref': '#/components/schemas/DepositEventBase'
+                  offset:
+                    description: |
+                      Only return events with lesser history id (results before offset id).
+                      If omitted, starts from the latest result.
+                    type: integer
+                    example: 1237
+                  limit:
+                    description: | 
+                      Return only N latest results.
+                      If omitted, returns all results.
+                    type: integer
+                    example: 50
+                    minimum: 1
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
   /api/v1/user/depositHistory/{depositId}: 

@@ -45,6 +45,31 @@ describe('routes: admin history', () => {
 			});
 		});
 
+		describe('querying purchases', () => {
+			it('with limit should limit amount of results', async () => {
+				const res = await chai
+					.request(app)
+					.get('/api/v1/admin/purchaseHistory')
+					.set('Authorization', 'Bearer ' + token)
+					.send({ limit: 2 });
+
+				expect(res.status).to.equal(200);
+				expect(res.body.purchases.length).to.equal(2);
+			});
+			it('with offset should return purchases starting from the offset', async () => {
+				const res = await chai
+					.request(app)
+					.get('/api/v1/admin/purchaseHistory')
+					.set('Authorization', 'Bearer ' + token)
+					.send({ offset: 7, limit: 2 });
+
+				expect(res.status).to.equal(200);
+				expect(res.body.purchases.length).to.equal(2);
+				expect(res.body.purchases[0].purchaseId).to.equal(6);
+				expect(res.body.purchases[1].purchaseId).to.equal(5);
+			});
+		});
+
 		describe('Querying a purchase by id', () => {
 			it('should return a purchase', async () => {
 				const res = await chai
@@ -76,6 +101,31 @@ describe('routes: admin history', () => {
 					.set('Authorization', 'Bearer ' + token);
 
 				expect(res.status).to.equal(200);
+			});
+		});
+
+		describe('querying deposit history', () => {
+			it('with limit should limit amount of results', async () => {
+				const res = await chai
+					.request(app)
+					.get('/api/v1/admin/depositHistory')
+					.set('Authorization', 'Bearer ' + token)
+					.send({ limit: 2 });
+
+				expect(res.status).to.equal(200);
+				expect(res.body.deposits.length).to.equal(2);
+			});
+			it('with offset should return deposits starting from the offset', async () => {
+				const res = await chai
+					.request(app)
+					.get('/api/v1/admin/depositHistory')
+					.set('Authorization', 'Bearer ' + token)
+					.send({ offset: 3, limit: 2 });
+
+				expect(res.status).to.equal(200);
+				expect(res.body.deposits.length).to.equal(2);
+				expect(res.body.deposits[0].depositId).to.equal(2);
+				expect(res.body.deposits[1].depositId).to.equal(1);
 			});
 		});
 
