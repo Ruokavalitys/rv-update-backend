@@ -237,6 +237,21 @@ components:
           type: string
           example: Drinks, soda with bottle return
           description: Human readable and user facing description of the product category.
+    Preference:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          example: globalDefaultMargin
+          description: Identifier of the preference.
+        value:
+          description: |
+            Value of the preference, which can be any JSON value.
+            The type depends on the preference in question.
+          example: 0.05
   responses:
     InvalidCredentialsErrorResponse:
       description: The JWT access token provided with the request is invalid or it is missing.
@@ -2300,10 +2315,10 @@ paths:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         404:
           '$ref': '#/components/responses/NotFoundErrorResponse'
-  /api/v1/admin/defaultMargin:
+  /api/v1/admin/preferences:
     get:
-      summary: Get the default margin
-      operationId: getDefaultmargin
+      summary: Get list of preferences and their values
+      operationId: getPreferences
       tags:
         - admin
       security:
@@ -2316,36 +2331,76 @@ paths:
               schema:
                 type: object
                 required:
-                  - margin
+                  - preferences
                 properties:
-                  margin:
-                    type: number
-                    example: 0.05
+                  preferences:
+                    type: array
+                    items:
+                      '$ref': '#/components/schemas/Preference'
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
-    patch:
-      summary: Update the value of default margin
-      operationId: updateDefaultmargin
+  /api/v1/admin/preferences/{preferenceKey}:
+    get:
+      summary: Get the value of a preference
+      operationId: getPreference
       tags:
         - admin
       security:
         - adminAccessToken: []
-      requestBody: 
-        required: true
-        content: 
-          application/json: 
-            schema: 
-              type: object
-              properties: 
-                margin: 
-                  type: number
-                  example: 0.05
-                  minimum: 0.00
-                  maximum: 1.00
+      parameters:
+        - name: preferenceKey
+          description: Key of the queried preference.
+          required: true
+          in: path
+          schema:
+            type: string
+            example: globalDefaultMargin
       responses:
         200:
-          description: Margin updated successfully
+          description: Request fulfilled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - preference
+                properties:
+                  preference:
+                    '$ref': '#/components/schemas/Preference'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        404:
+          '$ref': '#/components/responses/NotFoundErrorResponse'
+    patch:
+      summary: Update the value of a preference
+      operationId: updatePreference
+      tags:
+        - admin
+      security:
+        - adminAccessToken: []
+      parameters:
+        - name: preferenceKey
+          description: Key of the preference to update.
+          required: true
+          in: path
+          schema:
+            type: string
+            example: globalDefaultMargin
+      responses:
+        200:
+          description: Preference's value updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - preference
+                properties:
+                  preference:
+                    '$ref': '#/components/schemas/Preference'
         400:
           '$ref': '#/components/responses/BadRequestErrorResponse'
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        404:
+          '$ref': '#/components/responses/NotFoundErrorResponse'
