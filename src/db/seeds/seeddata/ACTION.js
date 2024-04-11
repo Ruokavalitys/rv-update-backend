@@ -111,4 +111,8 @@ export const actions = [
 		action: 'PRODUCT RETURNED',
 		actionid: 28,
 	},
+	{
+		action: 'PRODUCT BUY-IN',
+		actionid: 29,
+	},
 ];

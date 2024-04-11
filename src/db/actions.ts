@@ -28,6 +28,7 @@ const actions = {
 	DEPOSITED_MONEY_CASH: 26,
 	DEPOSITED_MONEY_BANKTRANSFER: 27,
 	PRODUCT_RETURNED: 28,
+	PRODUCT_BUY_IN: 29,
 };
 
 export default actions;

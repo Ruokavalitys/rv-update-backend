@@ -213,7 +213,7 @@ export const buyIn = async (boxBarcode, boxCount, userId) => {
 		await knex('ITEMHISTORY').transacting(trx).insert({
 			time: new Date(),
 			count: newCount,
-			actionid: actions.CHANGED_COUNT_OR_INVENTORIED_BUT_NOT_BOUGHT,
+			actionid: actions.PRODUCT_BUY_IN,
 			itemid: price_row[0].itemid,
 			userid: userId,
 			priceid1: price_row[0].priceid,
