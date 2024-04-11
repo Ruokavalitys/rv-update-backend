@@ -27,9 +27,10 @@ const mapDatabaseBoxToApiBox = (box) => ({
 
 router.get('/', async (req: Authenticated_request, res) => {
 	const user = req.user;
+	const itembarcode: string = req.body.itembarcode;
 
 	try {
-		const boxes = await boxStore.getBoxes();
+		const boxes = await boxStore.getBoxes(itembarcode);
 		const mappedBoxes = boxes.map(mapDatabaseBoxToApiBox);
 
 		logger.info('User %s fetched boxes as admin', user.username);

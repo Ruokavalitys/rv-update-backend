@@ -43,6 +43,21 @@ describe('routes: admin boxes', () => {
 
 			expect(res.status).to.equal(200);
 		});
+		it('should return only boxes related to certain item barcode if queried with itembarcode', async () => {
+			const itembarcode = '4740098010166';
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/boxes')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ itembarcode: itembarcode });
+			expect(res.body.boxes.length).to.equal(5);
+			expect(res.body.boxes[0].product.barcode).to.equal(itembarcode);
+			expect(res.body.boxes[1].product.barcode).to.equal(itembarcode);
+			expect(res.body.boxes[2].product.barcode).to.equal(itembarcode);
+			expect(res.body.boxes[3].product.barcode).to.equal(itembarcode);
+			expect(res.body.boxes[4].product.barcode).to.equal(itembarcode);
+			expect(res.status).to.equal(200);
+		});
 	});
 
 	describe('Fetching box by barcode', () => {

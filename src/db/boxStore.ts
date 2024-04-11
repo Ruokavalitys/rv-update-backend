@@ -27,8 +27,8 @@ const rowToBox = (row) => {
 /**
  * Retrieves all boxes and their associated products.
  */
-export const getBoxes = async () => {
-	const data = await knex('RVBOX')
+export const getBoxes = async (itembarcode?: string) => {
+	let query = knex('RVBOX')
 		.leftJoin('PRICE', 'RVBOX.itembarcode', 'PRICE.barcode')
 		.leftJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -44,6 +44,8 @@ export const getBoxes = async () => {
 			'PRICE.count'
 		)
 		.where('PRICE.endtime', null);
+	if (itembarcode) query = query.andWhere('RVBOX.itembarcode', itembarcode);
+	const data = await query;
 	return data.map(rowToBox);
 };
 

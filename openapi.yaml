@@ -1146,12 +1146,23 @@ paths:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
   /api/v1/admin/boxes: 
     get: 
-      summary: Get a list of product boxes
+      summary: Get a list of product boxes, optionally filter by item barcode
       operationId: getBoxes
       tags:
         - admin
       security:
         - adminAccessToken: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itembarcode:
+                  description: Only return boxes related to a given barcode
+                  type: string
+                  example: '4740098010166'
       responses: 
         200: 
           description: Request fulfilled successfully
