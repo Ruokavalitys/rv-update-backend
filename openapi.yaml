@@ -190,7 +190,6 @@ components:
       required: 
         - userId
         - username
-        - fullName
         - email
         - moneyBalance
         - role

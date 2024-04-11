@@ -22,7 +22,7 @@ export const rowToUser = (row): user | undefined => {
 		return {
 			userId: row.userid,
 			username: row.name,
-			fullName: row.realname || row.name,
+			fullName: row.realname,
 			email: row.univident,
 			moneyBalance: row.saldo,
 			role: row.role,
