@@ -203,8 +203,9 @@ components:
           type: string
           example: fuxi2001
           description: Username which is used in authentication.
-        fullName: 
+        fullName:
           type: string
+          nullable: true
           example: Fuxi C. S. McStudent
           description: Real full name of the user.
         email: 
