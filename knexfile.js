@@ -26,10 +26,10 @@ const config = {
 			port: process.env.DB_PORT,
 		},
 		migrations: {
-			directory: import.meta.dirname + '/built/src/db/migrations',
+			directory: import.meta.dirname + '/src/db/migrations',
 		},
 		seeds: {
-			directory: import.meta.dirname + '/built/src/db/seeds/test',
+			directory: import.meta.dirname + '/src/db/seeds/test',
 		},
 	},
 
