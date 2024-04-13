@@ -110,9 +110,9 @@ const isMultibuySaldoEvent = (itemEvent, saldoEvent) => {
 
 	// Weird edge cases in production data
 	if (
-		(itemEvent.sellprice === '65' && saldoEvent.difference === '-60') ||
-		(itemEvent.sellprice === '60' && saldoEvent.difference === '-62') ||
-		(itemEvent.sellprice === '57' && saldoEvent.difference === '-59')
+		(itemEvent.sellprice === 65 && saldoEvent.difference === -60) ||
+		(itemEvent.sellprice === 60 && saldoEvent.difference === -62) ||
+		(itemEvent.sellprice === 57 && saldoEvent.difference === -59)
 	) {
 		return itemEvent.time.getTime() === saldoEvent.time.getTime() && itemEvent.userid === saldoEvent.userid;
 	}
