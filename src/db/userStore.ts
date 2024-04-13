@@ -91,30 +91,37 @@ export const findByEmail = async (email) => {
 
 export const insertUser = async (userData) => {
 	const passwordHash = bcrypt.hashSync(userData.password, 11);
-
-	const insertedPersonRows = await knex('RVPERSON')
-		.insert({
-			createdate: new Date(),
-			// roleid 2 = USER1
-			roleid: 2,
-			name: userData.username,
-			univident: userData.email,
-			pass: passwordHash,
-			saldo: 0,
-			realname: userData.fullName,
-		})
-		.returning(['userid']);
-
-	return {
-		userId: insertedPersonRows[0].userid,
-		username: userData.username,
-		fullName: userData.fullName,
-		email: userData.email,
-		moneyBalance: 0,
-		role: 'USER1',
-		passwordHash: passwordHash,
-		privacyLevel: 0,
-	};
+	return await knex.transaction(async (trx) => {
+		const now = new Date();
+		const insertedPersonRows = await knex('RVPERSON')
+			.insert({
+				createdate: now,
+				// roleid 2 = USER1
+				roleid: 2,
+				name: userData.username,
+				univident: userData.email,
+				pass: passwordHash,
+				saldo: 0,
+				realname: userData.fullName,
+			})
+			.returning(['userid']);
+		await knex('PERSONHIST').transacting(trx).insert({
+			time: now,
+			actionid: actions.USER_CREATED,
+			userid1: insertedPersonRows[0].userid,
+			userid2: insertedPersonRows[0].userid,
+		});
+		return {
+			userId: insertedPersonRows[0].userid,
+			username: userData.username,
+			fullName: userData.fullName,
+			email: userData.email,
+			moneyBalance: 0,
+			role: 'USER1',
+			passwordHash: passwordHash,
+			privacyLevel: 0,
+		};
+	});
 };
 
 export const updateUser = async (userId, userData) => {
