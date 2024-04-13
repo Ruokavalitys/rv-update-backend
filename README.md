@@ -138,7 +138,7 @@ You can use a custom [.env](.env) file to override the environment variables set
 | Environment Variable                          | Description                                                                                                                                                                         |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB | Postgres database configuration                                                                                                                                                     |
-| JWT_SECRET, JWT_ADMIN_SECRET                  | Secret keys for signing JWT tokens. **Do not** use default values in production! The security of authentication will depend on this key being kept secret, so treat it accordingly. |
+| JWT_SECRET                 | Secret keys for signing JWT tokens. **Do not** use default values in production! The security of authentication will depend on this key being kept secret, so treat it accordingly. |
 | PORT                                          | Port the backend is served at                                                                                                                                                       |
 | NODE_ENV                                      | Environment for Node, can be one of `development`, `test` or `production`.                                                                                                          |
 

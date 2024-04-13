@@ -19,7 +19,6 @@ services:
             - DB_NAME=rv
             - DB_PORT=5432
             - JWT_SECRET=unsecure1
-            - JWT_ADMIN_SECRET=unsecure2
         volumes:
             - ./src:/usr/src/app/src
             - ./test:/usr/src/app/test

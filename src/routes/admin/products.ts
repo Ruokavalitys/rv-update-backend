@@ -8,7 +8,7 @@ import authMiddleware, { type Authenticated_request } from '../authMiddleware.js
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware('ADMIN'));
 
 interface Products_requests extends Authenticated_request {
 	product?: any;

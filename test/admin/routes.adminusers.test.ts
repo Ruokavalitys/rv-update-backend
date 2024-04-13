@@ -16,12 +16,9 @@ const user_token = jwt.sign({
 	userId: 1,
 });
 
-const token = jwt.sign(
-	{
-		userId: 2,
-	},
-	process.env.JWT_ADMIN_SECRET
-);
+const token = jwt.sign({
+	userId: 2,
+});
 
 after(async () => {
 	await test_teardown();
@@ -127,7 +124,7 @@ describe('routes: admin users', () => {
 				.set('Authorization', 'Bearer ' + user_token)
 				.send({ password: 'lol' });
 
-			expect(res.status).to.equal(401);
+			expect(res.status).to.equal(403);
 		});
 	});
 

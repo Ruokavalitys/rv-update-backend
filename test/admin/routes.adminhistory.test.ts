@@ -11,12 +11,9 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-const token = jwt.sign(
-	{
-		userId: 2,
-	},
-	process.env.JWT_ADMIN_SECRET
-);
+const token = jwt.sign({
+	userId: 2,
+});
 
 after(async () => {
 	await test_teardown();

@@ -5,7 +5,6 @@ import OpenApiValidator from 'express-openapi-validator';
 import helmet from 'helmet';
 import logger from './logger.js';
 
-import admin_auth from './routes/admin/adminAuth.js';
 import admin_boxes from './routes/admin/boxes.js';
 import admin_categories from './routes/admin/categories.js';
 import admin_default_margin from './routes/admin/default_margin.js';
@@ -50,7 +49,6 @@ app.use('/api/v1/products', user_products);
 app.use('/api/v1/categories', user_categories);
 
 app.use('/api/v1/admin/defaultMargin', admin_default_margin);
-app.use('/api/v1/admin/authenticate', admin_auth);
 app.use('/api/v1/admin/products', admin_products);
 app.use('/api/v1/admin/boxes', admin_boxes);
 app.use('/api/v1/admin/categories', admin_categories);

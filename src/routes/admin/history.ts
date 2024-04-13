@@ -4,7 +4,7 @@ import authMiddleware from '../authMiddleware.js';
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware('ADMIN', process.env.JWT_SECRET));
 
 router.get('/depositHistory', async (req, res) => {
 	const limit: number = req.body.limit;

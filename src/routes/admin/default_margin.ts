@@ -6,7 +6,7 @@ const { GLOBAL_DEFAULT_MARGIN } = preferences;
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware('ADMIN', process.env.JWT_SECRET));
 
 router.get('/', async (_req, res) => {
 	const margin = await getPreference(GLOBAL_DEFAULT_MARGIN);
