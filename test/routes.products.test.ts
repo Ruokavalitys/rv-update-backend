@@ -16,6 +16,11 @@ chai.use(chaiHttp);
 
 const token = jwt.sign({
 	userId: 1,
+	loggedInFromRvTerminal: true,
+});
+
+const tokenNoRvTerminal = jwt.sign({
+	userId: 1,
 });
 
 after(async () => {
@@ -191,6 +196,17 @@ describe('routes: products', () => {
 
 			expect(res.body.error_code).to.equal('insufficient_funds');
 		});
+		it('should fail if not logged in from rv terminal', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/purchase')
+				.set('Authorization', 'Bearer ' + tokenNoRvTerminal)
+				.send({
+					count: 1,
+				});
+
+			expect(res.status).to.equal(403);
+		});
 	});
 	describe('Returning a product', () => {
 		it('should increase account balance and product stock', async () => {
@@ -303,6 +319,22 @@ describe('routes: products', () => {
 			expect(newUser.moneyBalance).to.equal(oldUser.moneyBalance);
 
 			expect(newProduct.stock).to.equal(oldProduct.stock);
+		});
+		it('should fail if not logged in from rv terminal', async () => {
+			const res1 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/purchase')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					count: 1,
+				});
+
+			expect(res1.status).to.equal(200);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/products/8855702006834/return')
+				.set('Authorization', 'Bearer ' + tokenNoRvTerminal);
+			expect(res2.status).to.equal(403);
 		});
 	});
 });

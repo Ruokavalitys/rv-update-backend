@@ -8,7 +8,7 @@ import authMiddleware, { type Authenticated_request } from '../authMiddleware.js
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN'));
+router.use(authMiddleware({ requiredRole: 'ADMIN' }));
 
 interface Products_requests extends Authenticated_request {
 	product?: any;

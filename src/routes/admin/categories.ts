@@ -8,7 +8,7 @@ const { DEFAULT_PRODUCT_CATEGORY } = preferences;
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN', tokenSecret: process.env.JWT_SECRET }));
 
 router.get('/', async (req: Authenticated_request, res) => {
 	const user = req.user;

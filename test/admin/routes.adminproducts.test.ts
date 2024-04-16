@@ -13,11 +13,13 @@ chai.use(chaiHttp);
 
 const token = jwt.sign({
 	userId: 2,
+	loggedInFromRvTerminal: true,
 });
 
 const normalUserToken = jwt.sign(
 	{
 		userId: 1,
+		loggedInFromRvTerminal: true,
 	},
 	process.env.JWT_SECRET
 );

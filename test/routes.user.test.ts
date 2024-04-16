@@ -16,6 +16,11 @@ chai.use(chaiHttp);
 
 const token = jwt.sign({
 	userId: 1,
+	loggedInFromRvTerminal: true,
+});
+
+const tokenNoRvTerminal = jwt.sign({
+	userId: 1,
 });
 
 after(async () => {
@@ -275,6 +280,19 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(400);
+		});
+
+		it('should fail if not logged in from rv terminal', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + tokenNoRvTerminal)
+				.send({
+					amount: 150,
+					type: 'cash',
+				});
+
+			expect(res.status).to.equal(403);
 		});
 	});
 

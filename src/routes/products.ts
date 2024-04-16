@@ -72,77 +72,85 @@ router.post('/search', async (req: Authenticated_request, res) => {
 	res.status(200).json({ products: result });
 });
 
-router.post('/:barcode(\\d{1,14})/purchase', async (req: Authenticated_request, res) => {
-	const user = req.user;
-	const barcode = req.params.barcode;
-	const count = req.body.count;
+router.post(
+	'/:barcode(\\d{1,14})/purchase',
+	authMiddleware({ rvTerminalRequired: true }),
+	async (req: Authenticated_request, res) => {
+		const user = req.user;
+		const barcode = req.params.barcode;
+		const count = req.body.count;
 
-	const product = await productStore.findByBarcode(barcode);
+		const product = await productStore.findByBarcode(barcode);
 
-	// product and price found
-	if (product) {
-		/* User can always empty his account completely, but resulting negative saldo should be minimized. This is
-		 * achieved by allowing only a single product to be bought on credit. */
-		if (product.sellPrice <= 0 || user.moneyBalance > product.sellPrice * (count - 1)) {
-			// record purchase
-			const purchases = await productStore.recordPurchase(barcode, user.userId, count);
+		// product and price found
+		if (product) {
+			/* User can always empty his account completely, but resulting negative saldo should be minimized. This is
+			 * achieved by allowing only a single product to be bought on credit. */
+			if (product.sellPrice <= 0 || user.moneyBalance > product.sellPrice * (count - 1)) {
+				// record purchase
+				const purchases = await productStore.recordPurchase(barcode, user.userId, count);
 
-			const newBalance = purchases[purchases.length - 1].balanceAfter;
-			const newStock = purchases[purchases.length - 1].stockAfter;
+				const newBalance = purchases[purchases.length - 1].balanceAfter;
+				const newStock = purchases[purchases.length - 1].stockAfter;
 
-			const mappedPurchases = purchases.map((purchase) => {
-				return {
-					purchaseId: purchase.purchaseId,
-					time: purchase.time,
-					price: purchase.price,
-					balanceAfter: purchase.balanceAfter,
-					stockAfter: purchase.stockAfter,
-				};
-			});
+				const mappedPurchases = purchases.map((purchase) => {
+					return {
+						purchaseId: purchase.purchaseId,
+						time: purchase.time,
+						price: purchase.price,
+						balanceAfter: purchase.balanceAfter,
+						stockAfter: purchase.stockAfter,
+					};
+				});
 
-			// all done, respond with success
-			logger.info('User %s purchased %s x product %s', user.username, count, barcode);
-			res.status(200).json({
-				accountBalance: newBalance,
-				productStock: newStock,
-				purchases: mappedPurchases,
-			});
+				// all done, respond with success
+				logger.info('User %s purchased %s x product %s', user.username, count, barcode);
+				res.status(200).json({
+					accountBalance: newBalance,
+					productStock: newStock,
+					purchases: mappedPurchases,
+				});
+			} else {
+				// user doesn't have enough money
+				logger.error(
+					"User %s tried to purchase %s x product %s but didn't have enough money.",
+					user.username,
+					count,
+					barcode
+				);
+				res.status(403).json({
+					error_code: 'insufficient_funds',
+					message: 'Insufficient funds',
+				});
+			}
 		} else {
-			// user doesn't have enough money
-			logger.error(
-				"User %s tried to purchase %s x product %s but didn't have enough money.",
-				user.username,
-				count,
-				barcode
-			);
-			res.status(403).json({
-				error_code: 'insufficient_funds',
-				message: 'Insufficient funds',
+			// unknown product, no valid price or out of stock
+			logger.error('User %s tried to purchase unknown product %s', user.username, barcode);
+			res.status(404).json({
+				error_code: 'not_found',
+				message: 'Product not found',
 			});
 		}
-	} else {
-		// unknown product, no valid price or out of stock
-		logger.error('User %s tried to purchase unknown product %s', user.username, barcode);
-		res.status(404).json({
-			error_code: 'not_found',
-			message: 'Product not found',
-		});
 	}
-});
+);
 
-router.post('/:barcode(\\d{1,14})/return', async (req: Authenticated_request, res) => {
-	const user = req.user;
-	const barcode = req.params.barcode;
+router.post(
+	'/:barcode(\\d{1,14})/return',
+	authMiddleware({ rvTerminalRequired: true }),
+	async (req: Authenticated_request, res) => {
+		const user = req.user;
+		const barcode = req.params.barcode;
 
-	const result = await productStore.returnPurchase(barcode, user.userId);
+		const result = await productStore.returnPurchase(barcode, user.userId);
 
-	if (result.success) {
-		logger.info('User %s returned product %s successfully', user.username, barcode);
-		res.sendStatus(200);
-	} else {
-		logger.info('User %s attempted to return a product %s unsuccessfully', user.username, barcode);
-		res.status(403).json({ message: 'No recent non-returned purchases found for the barcode' });
+		if (result.success) {
+			logger.info('User %s returned product %s successfully', user.username, barcode);
+			res.sendStatus(200);
+		} else {
+			logger.info('User %s attempted to return a product %s unsuccessfully', user.username, barcode);
+			res.status(403).json({ message: 'No recent non-returned purchases found for the barcode' });
+		}
 	}
-});
+);
 
 export default router;

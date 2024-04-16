@@ -104,7 +104,7 @@ router.patch('/', async (req: Authenticated_request, res) => {
 	});
 });
 
-router.post('/deposit', async (req: Authenticated_request, res) => {
+router.post('/deposit', authMiddleware({ rvTerminalRequired: true }), async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const amount = req.body.amount;
 	const type = req.body.type;

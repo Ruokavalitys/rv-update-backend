@@ -416,6 +416,9 @@ paths:
                   accessToken: 
                     type: string
                     description: JSON Web Token
+                  rvTerminalSecret:
+                    type: string
+                    description: Include secret to allow access into rv terminal specific endpoints
         401:
           '$ref': '#/components/responses/InvalidCredentialsErrorResponse'
         400:
@@ -452,6 +455,9 @@ paths:
                   accessToken: 
                     type: string
                     description: JSON Web Token
+                  rvTerminalSecret:
+                    type: string
+                    description: Include secret to allow access into rv terminal specific endpoints
         401:
           '$ref': '#/components/responses/InvalidCredentialsErrorResponse'
         400:
@@ -697,6 +703,7 @@ paths:
                     type: string
                     enum:
                       - insufficient_funds
+                      - not_authorized
                   message:
                     type: string
                     example: Insufficient funds
@@ -897,6 +904,8 @@ paths:
                       - '$ref': '#/components/schemas/DepositEventBase'
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        403:
+            '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         400:
           '$ref': '#/components/responses/BadRequestErrorResponse'
       requestBody: 

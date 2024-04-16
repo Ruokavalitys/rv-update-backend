@@ -12,13 +12,17 @@ export const authenticateUserRfid =
 	async (req, res) => {
 		const body = req.body;
 		const rfid = body.rfid;
+		let loggedInFromRvTerminal = false;
+		if (body.rvTerminalSecret === process.env.RV_TERMINAL_SECRET) {
+			loggedInFromRvTerminal = true;
+		}
 
 		const user = await userStore.findByRfid(rfid);
 		if (user) {
 			if (verifyRole(requiredRole, user.role)) {
 				logger.info('User %s logged in as role %s', user.username, requiredRole);
 				res.status(200).json({
-					accessToken: jwt.sign({ userId: user.userId }, tokenSecret),
+					accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, tokenSecret),
 				});
 			} else {
 				logger.error('User %s is not authorized to login as role %s', user.username, requiredRole);
@@ -40,13 +44,16 @@ export const authenticateUser = () => async (req, res) => {
 	const body = req.body;
 	const username = body.username;
 	const password = body.password;
-
+	let loggedInFromRvTerminal = false;
+	if (body.rvTerminalSecret === process.env.RV_TERMINAL_SECRET) {
+		loggedInFromRvTerminal = true;
+	}
 	const user = await userStore.findByUsername(username);
 	if (user) {
 		if (password != undefined && (await userStore.verifyPassword(password, user.passwordHash))) {
 			logger.info('User %s logged in with role %s', user.username, user.role);
 			res.status(200).json({
-				accessToken: jwt.sign({ userId: user.userId }, process.env.JWT_SECRET),
+				accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, process.env.JWT_SECRET),
 			});
 		} else {
 			logger.error('Failed to login with username and password. Username was %s', username);

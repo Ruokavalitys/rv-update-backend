@@ -5,7 +5,7 @@ import authMiddleware, { type Authenticated_request } from '../authMiddleware.js
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN', tokenSecret: process.env.JWT_SECRET }));
 
 router.get('/', async (_req, res) => {
 	const values = await Promise.all(

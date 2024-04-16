@@ -19,6 +19,7 @@ services:
             - DB_NAME=rv
             - DB_PORT=5432
             - JWT_SECRET=unsecure1
+            - RV_TERMINAL_SECRET=unsecure
         volumes:
             - ./src:/usr/src/app/src
             - ./test:/usr/src/app/test
