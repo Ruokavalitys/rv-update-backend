@@ -1591,36 +1591,36 @@ paths:
                 stock: 
                   type: integer
                   example: 8
-    delete: 
-      summary: Delete a product
-      operationId: deleteProduct
-      tags:
-        - admin
-      security:
-        - adminAccessToken: []
-      parameters: 
-        - name: barcode
-          description: Uniquely identifying barcode of the product.
-          required: true
-          in: path
-          schema: 
-            type: string
-      responses: 
-        200: 
-          description: Product deleted successfully
-          content: 
-            application/json: 
-              schema: 
-                type: object
-                required: 
-                  - deletedProduct
-                properties: 
-                  deletedProduct: 
-                    '$ref': '#/components/schemas/AdminProduct'
-        401:
-          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
-        404:
-          '$ref': '#/components/responses/NotFoundErrorResponse'
+#    delete: 
+#      summary: Delete a product
+#      operationId: deleteProduct
+#      tags:
+#        - admin
+#      security:
+#        - adminAccessToken: []
+#      parameters: 
+#        - name: barcode
+#          description: Uniquely identifying barcode of the product.
+#          required: true
+#          in: path
+#          schema: 
+#            type: string
+#      responses: 
+#        200: 
+#          description: Product deleted successfully
+#          content: 
+#            application/json: 
+#              schema: 
+#                type: object
+#                required: 
+#                  - deletedProduct
+#                properties: 
+#                  deletedProduct: 
+#                    '$ref': '#/components/schemas/AdminProduct'
+#        401:
+#          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+#        404:
+#          '$ref': '#/components/responses/NotFoundErrorResponse'
   /api/v1/admin/products/{barcode}/buyIn: 
     post: 
       summary: Add product to stock

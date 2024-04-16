@@ -211,6 +211,8 @@ router.patch('/:barcode(\\d{1,14})', async (req: Products_requests, res) => {
 	});
 });
 
+/* Disabled because of other endpoints misbehaving with deleted products.
+See https://github.com/TKOaly/rv-backend/issues/69
 router.delete('/:barcode(\\d{1,14})', async (req, res) => {
 	const product = await productStore.deleteProduct(req.params.barcode);
 
@@ -226,7 +228,7 @@ router.delete('/:barcode(\\d{1,14})', async (req, res) => {
 	res.status(200).json({
 		deletedProduct: product,
 	});
-});
+});*/
 
 router.post('/:barcode(\\d{1,14})/buyIn', async (req: Products_requests, res) => {
 	const barcode = req.params.barcode;

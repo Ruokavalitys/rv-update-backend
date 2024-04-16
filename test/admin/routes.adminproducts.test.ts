@@ -16,13 +16,15 @@ const token = jwt.sign({
 	loggedInFromRvTerminal: true,
 });
 
+/* Disabled because of other endpoints misbehaving with deleted products.
+See https://github.com/TKOaly/rv-backend/issues/69
 const normalUserToken = jwt.sign(
 	{
 		userId: 1,
 		loggedInFromRvTerminal: true,
 	},
 	process.env.JWT_SECRET
-);
+);*/
 
 after(async () => {
 	await test_teardown();
@@ -255,6 +257,8 @@ describe('routes: admin products', () => {
 		});
 	});
 
+	/* Disabled because of other endpoints misbehaving with deleted products.
+	See https://github.com/TKOaly/rv-backend/issues/69
 	describe('Deleting a product', () => {
 		it('should fail on nonexisting product', async () => {
 			const res = await chai
@@ -321,6 +325,7 @@ describe('routes: admin products', () => {
 			expect(purchase.status).to.equal(404);
 		});
 	});
+	*/
 
 	describe('Buy-in of a product', () => {
 		it('should fail on nonexisting products', async () => {
