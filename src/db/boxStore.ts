@@ -82,8 +82,9 @@ export const findByBoxBarcode = async (boxBarcode) => {
 /**
  * Creates a new box for a product.
  */
-export const insertBox = async (boxData) => {
+export const insertBox = async (boxData, userId) => {
 	return await knex.transaction(async (trx) => {
+		const now = new Date();
 		await knex('RVBOX').transacting(trx).insert({
 			barcode: boxData.boxBarcode,
 			itembarcode: boxData.productBarcode,
@@ -100,11 +101,21 @@ export const insertBox = async (boxData) => {
 				'PRODGROUP.descr as pgrpdescr',
 				'PRICE.buyprice',
 				'PRICE.sellprice',
-				'PRICE.count'
+				'PRICE.count',
+				'RVITEM.itemid'
 			)
 			.where('PRICE.barcode', boxData.productBarcode)
 			.andWhere('PRICE.endtime', null)
 			.first();
+
+		await knex('BOXHISTORY').transacting(trx).insert({
+			time: now,
+			barcode: boxData.boxBarcode,
+			itemid: productRow.itemid,
+			itemcount: boxData.itemsPerBox,
+			userid: userId,
+			actionid: actions.BOX_CREATED,
+		});
 
 		return {
 			boxBarcode: boxData.boxBarcode,
@@ -124,8 +135,10 @@ export const insertBox = async (boxData) => {
 	});
 };
 
-export const updateBox = async (boxBarcode, boxData) => {
+export const updateBox = async (boxBarcode, boxData, userId) => {
 	return await knex.transaction(async (trx) => {
+		const now = new Date();
+
 		const rvboxFields = deleteUndefinedFields({
 			itembarcode: boxData.productBarcode,
 			itemcount: boxData.itemsPerBox,
@@ -147,11 +160,22 @@ export const updateBox = async (boxBarcode, boxData) => {
 				'PRODGROUP.descr as pgrpdescr',
 				'PRICE.buyprice',
 				'PRICE.sellprice',
-				'PRICE.count'
+				'PRICE.count',
+				'RVITEM.itemid'
 			)
 			.where('PRICE.endtime', null)
 			.andWhere('RVBOX.barcode', boxBarcode)
 			.first();
+
+		await knex('BOXHISTORY').transacting(trx).insert({
+			time: now,
+			barcode: boxRow.barcode,
+			itemid: boxRow.itemid,
+			itemcount: boxRow.itemcount,
+			userid: userId,
+			actionid: actions.CHANGED_BOX_ITEM_COUNT,
+		});
+
 		return rowToBox(boxRow);
 	});
 };

@@ -74,11 +74,14 @@ router.post('/', async (req: Authenticated_request, res) => {
 		return;
 	}
 
-	const newBox = await boxStore.insertBox({
-		boxBarcode,
-		itemsPerBox,
-		productBarcode,
-	});
+	const newBox = await boxStore.insertBox(
+		{
+			boxBarcode,
+			itemsPerBox,
+			productBarcode,
+		},
+		user.userId
+	);
 
 	logger.info(
 		'User %s created new box with data {boxBarcode: %s, itemsPerBox: %s, productBarcode: %s}',
@@ -153,7 +156,8 @@ router.patch('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) 
 		deleteUndefinedFields({
 			itemsPerBox,
 			productBarcode,
-		})
+		}),
+		user.userId
 	);
 
 	logger.info(
