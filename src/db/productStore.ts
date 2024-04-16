@@ -96,6 +96,7 @@ export const findByBarcode = async (barcode) => {
  */
 export const insertProduct = async (productData, userId) => {
 	return await knex.transaction(async (trx) => {
+		const now = new Date();
 		const insertedRows = await knex('RVITEM')
 			.transacting(trx)
 			.insert({
@@ -104,22 +105,34 @@ export const insertProduct = async (productData, userId) => {
 			})
 			.returning(['itemid']);
 
-		await knex('PRICE').transacting(trx).insert({
-			barcode: productData.barcode,
-			count: productData.stock,
-			buyprice: productData.buyPrice,
-			sellprice: productData.sellPrice,
-			itemid: insertedRows[0].itemid,
-			userid: userId,
-			starttime: new Date(),
-			endtime: null,
-		});
+		const priceRows = await knex('PRICE')
+			.transacting(trx)
+			.insert({
+				barcode: productData.barcode,
+				count: productData.stock,
+				buyprice: productData.buyPrice,
+				sellprice: productData.sellPrice,
+				itemid: insertedRows[0].itemid,
+				userid: userId,
+				starttime: new Date(),
+				endtime: null,
+			})
+			.returning('priceid');
 
 		const categoryRow = await knex('PRODGROUP')
 			.transacting(trx)
 			.select('descr')
 			.where('pgrpid', productData.categoryId)
 			.first();
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: now,
+			count: productData.stock,
+			actionid: actions.ITEM_CREATED,
+			userid: userId,
+			itemid: insertedRows[0].itemid,
+			priceid1: priceRows[0].priceid,
+		});
 
 		return {
 			barcode: productData.barcode,
