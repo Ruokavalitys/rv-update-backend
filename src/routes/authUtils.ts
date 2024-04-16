@@ -15,6 +15,13 @@ export const authenticateUserRfid =
 		let loggedInFromRvTerminal = false;
 		if (body.rvTerminalSecret === process.env.RV_TERMINAL_SECRET) {
 			loggedInFromRvTerminal = true;
+		} else {
+			logger.error('Rfid login failed, rv_terminal_secret not included');
+			res.status(401).json({
+				error_code: 'invalid_credentials',
+				message: 'Invalid rfid',
+			});
+			return;
 		}
 
 		const user = await userStore.findByRfid(rfid);

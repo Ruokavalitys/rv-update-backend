@@ -30,6 +30,7 @@ describe('routes: authentication', () => {
 		it('with valid credentials, should respond with an authentication token', async () => {
 			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
 				rfid: '1234',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
 			});
 
 			expect(res.status).to.equal(200);
@@ -44,6 +45,7 @@ describe('routes: authentication', () => {
 		it('with invalid rfid, should return a 401 unauthorized response', async () => {
 			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
 				rfid: '12345',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
 			});
 			expect(res.status).to.equal(401);
 		});
@@ -51,9 +53,35 @@ describe('routes: authentication', () => {
 		it('invalid request should result in a 400 bad request response', async () => {
 			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
 				garbage: 'garbage',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
 			});
 
 			expect(res.status).to.equal(400);
+		});
+
+		it('should sign as rv terminal login if valid rvTerminalSecret ', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
+				rfid: '1234',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
+			});
+
+			expect(res.status).to.equal(200);
+
+			const token = jwt.verify(res.body.accessToken);
+			expect(token.data.loggedInFromRvTerminal).to.exist;
+			expect(token.data.loggedInFromRvTerminal).to.equal(true);
+		});
+
+		it('should not sign as rv terminal login if invalid rvTerminalSecret ', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/authenticate/rfid')
+				.send({
+					rfid: '1234',
+					rvTerminalSecret: process.env.RV_TERMINAL_SECRET + 'lol',
+				});
+
+			expect(res.status).to.equal(401);
 		});
 	});
 
@@ -97,6 +125,35 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(400);
+		});
+
+		it('should sign as rv terminal login if valid rvTerminalSecret ', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'normal_user',
+				password: 'hunter2',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
+			});
+
+			expect(res.status).to.equal(200);
+
+			const token = jwt.verify(res.body.accessToken);
+			expect(token.data.loggedInFromRvTerminal).to.equal(true);
+		});
+
+		it('should not sign as rv terminal login if invalid rvTerminalSecret ', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/authenticate')
+				.send({
+					username: 'normal_user',
+					password: 'hunter2',
+					rvTerminalSecret: process.env.RV_TERMINAL_SECRET + 'lol',
+				});
+
+			expect(res.status).to.equal(200);
+
+			const token = jwt.verify(res.body.accessToken);
+			expect(token.data.loggedInFromRvTerminal).to.equal(false);
 		});
 	});
 });

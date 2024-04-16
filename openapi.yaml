@@ -432,6 +432,8 @@ paths:
               required:
                 - rfid
               properties: 
+                rvTerminalSecret:
+                  type: string
                 rfid: 
                   type: string
                   example: 8a4f2f0a
