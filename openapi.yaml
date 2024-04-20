@@ -412,6 +412,8 @@ paths:
                     description: JSON Web Token
         401:
           '$ref': '#/components/responses/InvalidCredentialsErrorResponse'
+        403:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         400:
           '$ref': '#/components/responses/BadRequestErrorResponse'
       requestBody: 
@@ -448,6 +450,8 @@ paths:
                     description: JSON Web Token
         401:
           '$ref': '#/components/responses/InvalidCredentialsErrorResponse'
+        403:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
         400:
           '$ref': '#/components/responses/BadRequestErrorResponse'
       requestBody: 

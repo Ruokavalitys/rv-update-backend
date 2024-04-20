@@ -4,7 +4,7 @@ import logger from './../logger.js';
 
 /* null means no role requirements. */
 export const verifyRole = (requiredRole, userRole) => {
-	return requiredRole === null || requiredRole === userRole;
+	return userRole !== 'INACTIVE' && (requiredRole === null || requiredRole === userRole);
 };
 
 export const authenticateUserRfid =
