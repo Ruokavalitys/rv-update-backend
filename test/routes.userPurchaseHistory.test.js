@@ -39,6 +39,13 @@ describe('routes: userPurchaseHistory', () => {
 
 			expect(res.status).to.equal(200);
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/user/purchaseHistory');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Fetching single purchase by id', () => {
@@ -59,6 +66,13 @@ describe('routes: userPurchaseHistory', () => {
 
 			expect(res.status).to.equal(404);
 			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/user/purchaseHistory/2');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

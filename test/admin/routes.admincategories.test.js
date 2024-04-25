@@ -56,6 +56,13 @@ describe('routes: admin categories', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/categories');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Fetching category by id', () => {
@@ -83,6 +90,13 @@ describe('routes: admin categories', () => {
 				.request(app)
 				.get('/api/v1/admin/categories/11')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/categories/11');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -145,6 +159,15 @@ describe('routes: admin categories', () => {
 				.send({
 					description: 'Food waste',
 				});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/categories').send({
+				description: 'Food waste',
+			});
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -231,6 +254,15 @@ describe('routes: admin categories', () => {
 				.send({
 					description: 'Radioactive waste',
 				});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/admin/categories/20').send({
+				description: 'Radioactive waste',
+			});
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -358,6 +390,13 @@ describe('routes: admin categories', () => {
 				.request(app)
 				.delete('/api/v1/admin/categories/20')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).delete('/api/v1/admin/categories/20');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');

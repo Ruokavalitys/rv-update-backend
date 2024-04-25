@@ -55,6 +55,13 @@ describe('routes: admin preferences', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/preferences');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe("querying a preference by it's key", () => {
@@ -97,6 +104,13 @@ describe('routes: admin preferences', () => {
 				.request(app)
 				.get('/api/v1/admin/preferences/globalDefaultMargin')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/preferences/globalDefaultMargin');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -174,6 +188,15 @@ describe('routes: admin preferences', () => {
 				.send({
 					value: 0.25,
 				});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/admin/preferences/globalDefaultMargin').send({
+				value: 0.25,
+			});
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');

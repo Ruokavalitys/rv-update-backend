@@ -65,6 +65,13 @@ describe('routes: user', () => {
 
 			expect(res.status).to.equal(200);
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/user');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Modifying user info', () => {
@@ -157,6 +164,17 @@ describe('routes: user', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/user').send({
+				username: 'abcd',
+				fullName: 'abcd efgh',
+				email: 'abc@def.ghi',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Depositing money', () => {
@@ -214,6 +232,15 @@ describe('routes: user', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/deposit').send({
+				amount: 150,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Changing password', () => {
@@ -259,6 +286,15 @@ describe('routes: user', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changePassword').send({
+				password: 'abcdefg',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Changing rfid', () => {
@@ -303,6 +339,15 @@ describe('routes: user', () => {
 
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changeRfid').send({
+				rfid: '50ab45',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

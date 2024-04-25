@@ -56,6 +56,13 @@ describe('routes: admin history', () => {
 				expect(res.status).to.equal(401);
 				expect(res.body.error_code).to.equal('invalid_token');
 			});
+
+			it('should not be called without authentication', async () => {
+				const res = await chai.request(app).get('/api/v1/admin/purchaseHistory');
+
+				expect(res.status).to.equal(401);
+				expect(res.body.error_code).to.equal('invalid_token');
+			});
 		});
 
 		describe('Querying a purchase by id', () => {
@@ -87,6 +94,13 @@ describe('routes: admin history', () => {
 				expect(res.status).to.equal(401);
 				expect(res.body.error_code).to.equal('invalid_token');
 			});
+
+			it('should not be called without authentication', async () => {
+				const res = await chai.request(app).get('/api/v1/admin/purchaseHistory/1');
+
+				expect(res.status).to.equal(401);
+				expect(res.body.error_code).to.equal('invalid_token');
+			});
 		});
 	});
 
@@ -106,6 +120,13 @@ describe('routes: admin history', () => {
 					.request(app)
 					.get('/api/v1/admin/depositHistory')
 					.set('Authorization', 'Bearer ' + userToken);
+
+				expect(res.status).to.equal(401);
+				expect(res.body.error_code).to.equal('invalid_token');
+			});
+
+			it('should not be called without authentication', async () => {
+				const res = await chai.request(app).get('/api/v1/admin/depositHistory');
 
 				expect(res.status).to.equal(401);
 				expect(res.body.error_code).to.equal('invalid_token');
@@ -137,6 +158,13 @@ describe('routes: admin history', () => {
 					.request(app)
 					.get('/api/v1/admin/depositHistory/1')
 					.set('Authorization', 'Bearer ' + userToken);
+
+				expect(res.status).to.equal(401);
+				expect(res.body.error_code).to.equal('invalid_token');
+			});
+
+			it('should not be called without authentication', async () => {
+				const res = await chai.request(app).get('/api/v1/admin/depositHistory/1');
 
 				expect(res.status).to.equal(401);
 				expect(res.body.error_code).to.equal('invalid_token');

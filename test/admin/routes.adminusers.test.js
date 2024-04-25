@@ -56,6 +56,13 @@ describe('routes: admin users', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Fetching user by id', () => {
@@ -83,6 +90,13 @@ describe('routes: admin users', () => {
 				.request(app)
 				.get('/api/v1/admin/users/1')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -168,6 +182,15 @@ describe('routes: admin users', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/users/1/changeRole').send({
+				role: 'ADMIN',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe("Fetching user's deposit history", async () => {
@@ -199,6 +222,13 @@ describe('routes: admin users', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1/depositHistory');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe("Fetching user's purchase history", async () => {
@@ -226,6 +256,13 @@ describe('routes: admin users', () => {
 				.request(app)
 				.get('/api/v1/admin/users/1/purchaseHistory')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1/purchaseHistory');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');

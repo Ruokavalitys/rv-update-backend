@@ -66,6 +66,13 @@ describe('routes: products', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/products/search').send({ query: 'koff III' });
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Fetching all products', () => {
@@ -76,6 +83,13 @@ describe('routes: products', () => {
 				.set('Authorization', 'Bearer ' + token);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/products');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -97,6 +111,13 @@ describe('routes: products', () => {
 
 			expect(res.status).to.equal(404);
 			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/products/5053990127443');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -229,6 +250,15 @@ describe('routes: products', () => {
 
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/products/8855702006834/purchase').send({
+				count: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

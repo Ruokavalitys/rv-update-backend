@@ -55,6 +55,13 @@ describe('routes: admin products', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Fetching product by barcode', () => {
@@ -82,6 +89,13 @@ describe('routes: admin products', () => {
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products/5053990123506');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -201,6 +215,20 @@ describe('routes: admin products', () => {
 					sellPrice: 370,
 					stock: 1,
 				});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/products').send({
+				barcode: '575757575757',
+				name: 'Opossumin lihaa',
+				categoryId: 24,
+				buyPrice: 367,
+				sellPrice: 370,
+				stock: 1,
+			});
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -332,6 +360,19 @@ describe('routes: admin products', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/admin/products/5053990123506').send({
+				name: 'Koalan lihaa',
+				categoryId: 24,
+				buyPrice: 367,
+				sellPrice: 370,
+				stock: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Deleting a product', () => {
@@ -412,6 +453,13 @@ describe('routes: admin products', () => {
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).delete('/api/v1/admin/products/5053990123506');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
@@ -549,6 +597,17 @@ describe('routes: admin products', () => {
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
 		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/products/5053990123506/buyIn').send({
+				count: 1,
+				buyPrice: 1,
+				sellPrice: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe("Querying product's purchase history", () => {
@@ -576,6 +635,13 @@ describe('routes: admin products', () => {
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506/purchaseHistory')
 				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products/5053990123506/purchaseHistory');
 
 			expect(res.status).to.equal(401);
 			expect(res.body.error_code).to.equal('invalid_token');
