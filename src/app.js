@@ -68,6 +68,14 @@ app.use((error, _req, res, next) => {
 
 		return;
 	}
+	if (error.status === 401) {
+		res.status(401).json({
+			error_code: 'invalid_token',
+			message: error.message,
+		});
+
+		return;
+	}
 
 	res.status(500).json({
 		error_code: 'internal_error',
