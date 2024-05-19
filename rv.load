@@ -22,7 +22,10 @@ AFTER LOAD DO
 	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('PRODUCT RETURNED', 28); $$,
 	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('PRODUCT BUY-IN', 29); $$,
 	$$ UPDATE "RVITEM" SET descr = replace(descr, 'Ã¶', 'ö'); $$,
-	$$ UPDATE "RVITEM" SET descr = replace(descr, 'Ã¤', 'ä'); $$
+	$$ UPDATE "RVITEM" SET descr = replace(descr, 'Ã¤', 'ä'); $$,
 
+	$$ CREATE SEQUENCE "RVPERSON_userid_seq" AS integer; $$,
+	$$ SELECT setval('"RVPERSON_userid_seq"', max("userid")) FROM "RVPERSON"; $$,
+	$$ ALTER TABLE "RVPERSON" ALTER COLUMN "userid" SET DEFAULT nextval('"RVPERSON_userid_seq"'); $$,
+	$$ ALTER SEQUENCE "RVPERSON_userid_seq" OWNED BY "RVPERSON"."userid"; $$
 ;
-
