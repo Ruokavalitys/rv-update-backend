@@ -95,6 +95,14 @@ router.post('/', async (req: Authenticated_request, res) => {
 	});
 });
 
+router.post('/search', async (req: Authenticated_request, res) => {
+	const user = req.user;
+	const query = req.body.query;
+	const result = await boxStore.searchBoxes(query);
+	logger.info('User %s searched for boxes with query: %s', user.username, query);
+	res.status(200).json({ boxes: result });
+});
+
 router.get('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const boxBarcode = req.params.boxBarcode;

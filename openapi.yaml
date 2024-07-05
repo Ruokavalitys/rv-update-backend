@@ -1155,6 +1155,42 @@ paths:
           '$ref': '#/components/responses/BadRequestErrorResponse'
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+  /api/v1/admin/boxes/search: 
+    post: 
+      summary: Search for boxes
+      operationId: searchBoxes
+      tags:
+        - normal
+      security:
+        - adminAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json: 
+            schema: 
+              type: object
+              required: 
+                - query
+              properties: 
+                query: 
+                  type: string
+                  example: muumilimsa
+      responses: 
+        200:
+          description: Request fulfilled successfully
+          content: 
+            application/json: 
+              schema: 
+                type: object
+                required: 
+                  - boxes
+                properties: 
+                  boxes: 
+                    type: array
+                    items: 
+                      '$ref': '#/components/schemas/Box'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
   /api/v1/admin/boxes: 
     get: 
       summary: Get a list of product boxes, optionally filter by item barcode

@@ -25,6 +25,35 @@ const rowToBox = (row) => {
 };
 
 /**
+ * Return all boxes with match in barcode or item description
+ */
+export const searchBoxes = async (query) => {
+	const data = await knex('RVBOX')
+		.leftJoin('PRICE', 'RVBOX.itembarcode', 'PRICE.barcode')
+		.leftJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
+		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
+		.select(
+			'RVBOX.barcode',
+			'RVBOX.itemcount',
+			'RVBOX.itembarcode',
+			'RVITEM.descr',
+			'RVITEM.pgrpid',
+			'PRODGROUP.descr as pgrpdescr',
+			'PRICE.buyprice',
+			'PRICE.sellprice',
+			'PRICE.count'
+		)
+		.where((queryBuilder) => {
+			queryBuilder
+				.whereILike('RVITEM.descr', `%${query}%`)
+				.orWhereILike('PRICE.barcode', `%${query}%`)
+				.orWhereILike('RVBOX.barcode', `%${query}%`);
+		})
+		.andWhere('PRICE.endtime', null);
+	return data.map(rowToBox);
+};
+
+/**
  * Retrieves all boxes and their associated products.
  */
 export const getBoxes = async (itembarcode?: string) => {

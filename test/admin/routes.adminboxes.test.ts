@@ -60,6 +60,45 @@ describe('routes: admin boxes', () => {
 		});
 	});
 
+	describe('Searching boxes', () => {
+		it('should return product barcode matching box if found', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/boxes/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ query: '4740098010166' });
+			expect(res.status).to.equal(200);
+			expect(res.body.boxes.length).to.equal(5);
+		});
+		it('should return box barcode matching box if found', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/boxes/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ query: '8810337568652' });
+			expect(res.status).to.equal(200);
+			expect(res.body.boxes.length).to.equal(1);
+		});
+		it('should return product name matching box if found', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/boxes/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ query: 'A. Le Coq' });
+			expect(res.status).to.equal(200);
+			expect(res.body.boxes.length).to.equal(5);
+		});
+		it('should return no matching product if not found', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/boxes/search')
+				.set('Authorization', 'Bearer ' + token)
+				.send({ query: 'motivaatio' });
+			expect(res.status).to.equal(200);
+			expect(res.body.boxes.length).to.equal(0);
+		});
+	});
+
 	describe('Fetching box by barcode', () => {
 		it('should return the box', async () => {
 			const res = await chai
