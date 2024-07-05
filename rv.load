@@ -28,4 +28,9 @@ AFTER LOAD DO
 	$$ SELECT setval('"RVPERSON_userid_seq"', max("userid")) FROM "RVPERSON"; $$,
 	$$ ALTER TABLE "RVPERSON" ALTER COLUMN "userid" SET DEFAULT nextval('"RVPERSON_userid_seq"'); $$,
 	$$ ALTER SEQUENCE "RVPERSON_userid_seq" OWNED BY "RVPERSON"."userid"; $$
+
+	$$ CREATE SEQUENCE "RVITEM_itemid_seq" AS integer; $$,
+	$$ SELECT setval('"RVITEM_itemid_seq"', max("itemid")) FROM "RVITEM"; $$,
+	$$ ALTER TABLE "RVITEM" ALTER COLUMN "itemid" SET DEFAULT nextval('"RVITEM_itemid_seq"'); $$,
+	$$ ALTER SEQUENCE "RVITEM_itemid_seq" OWNED BY "RVITEM"."itemid"; $$
 ;
