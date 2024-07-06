@@ -2277,6 +2277,38 @@ paths:
               properties: 
                 role: 
                   '$ref': '#/components/schemas/Role'
+  /api/v1/admin/utils/getUserByUsername/{username}:
+    get: 
+      summary: Get details of user with the given username
+      operationId: getUserByUsername
+      tags:
+        - normal
+      security:
+        - adminAccessToken: []
+      parameters: 
+        - name: username
+          description: Username of the user.
+          required: true
+          in: path
+          schema: 
+            type: string
+            example: user
+      responses: 
+        200: 
+          description: Request fulfilled successfully
+          content: 
+            application/json: 
+              schema: 
+                type: object
+                required: 
+                  - user
+                properties: 
+                  user:
+                    '$ref': '#/components/schemas/User'
+        401:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        404:
+          '$ref': '#/components/responses/NotFoundErrorResponse'
   /api/v1/admin/purchaseHistory: 
     get: 
       summary: Get combined purchase histories of all products and users
