@@ -44,7 +44,7 @@ describe('routes: authentication', () => {
 
 		it('with invalid rfid, should return a 401 unauthorized response', async () => {
 			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
-				rfid: '12345',
+				rfid: '123456',
 				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
 			});
 			expect(res.status).to.equal(401);

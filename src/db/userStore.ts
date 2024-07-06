@@ -1,9 +1,10 @@
+import { createHash } from 'crypto';
 import bcrypt from 'bcrypt';
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
 import actions from './actions.js';
 import knex from './knex.js';
 
-export const RFID_SALT = '$2b$15$yvDy89XRQiv1e4M6Vn2m5e';
+export const RFID_SALT = 'rv-vakio-suola';
 
 export interface user {
 	userId: any;
@@ -62,12 +63,10 @@ export const findById = async (userId) => {
 };
 
 export const findByRfid = async (rfid) => {
-	// TODO rfid should be changed to use sha256 for compatibility with old rv
-	const rfid_hash = bcrypt.hashSync(rfid, RFID_SALT);
 	const row = await knex('RVPERSON')
 		.leftJoin('ROLE', 'RVPERSON.roleid', 'ROLE.roleid')
 		.select(user_select_query)
-		.where('RVPERSON.rfid', rfid_hash)
+		.where('RVPERSON.rfid', oldRvRfidHash(rfid))
 		.first();
 	return rowToUser(row);
 };
@@ -124,6 +123,18 @@ export const insertUser = async (userData) => {
 	});
 };
 
+// This is for compatibility with old RV, should probably migrate to bcrypt
+export const oldRvRfidHash = (rfid_hex: string): string => {
+	const hash = createHash('sha256');
+	hash.update(RFID_SALT);
+	hash.update(Buffer.from(rfid_hex, 'hex'));
+	return hash
+		.digest('hex')
+		.split('')
+		.filter((c, idx) => !(idx % 2 == 0 && c == '0'))
+		.join('');
+};
+
 export const updateUser = async (userId, userData) => {
 	return await knex.transaction(async (trx) => {
 		const rvpersonFields = deleteUndefinedFields({
@@ -137,7 +148,7 @@ export const updateUser = async (userId, userData) => {
 			rvpersonFields.pass = bcrypt.hashSync(userData.password, 11);
 		}
 		if (userData.rfid !== undefined) {
-			rvpersonFields.rfid = bcrypt.hashSync(userData.rfid, RFID_SALT);
+			rvpersonFields.rfid = oldRvRfidHash(userData.rfid);
 		}
 		if (userData.role !== undefined) {
 			const roleRow = await knex('ROLE').transacting(trx).select('roleid').where({ role: userData.role }).first();
