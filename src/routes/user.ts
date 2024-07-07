@@ -137,6 +137,16 @@ router.post('/changeRfid', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const rfid = req.body.rfid;
 
+	const existing_user = await userStore.findByRfid(rfid);
+
+	if (existing_user != undefined && existing_user.userId != user.userId) {
+		logger.error('User %s tried to change rfidbut it was already taken', user.username);
+		res.status(409).json({
+			error_code: 'identifier_taken',
+			message: 'RFID already in use.',
+		});
+		return;
+	}
 	await userStore.updateUser(user.userId, { rfid: rfid });
 
 	logger.info('User %s changed rfid', user.username);

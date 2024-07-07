@@ -19,6 +19,11 @@ const token = jwt.sign({
 	loggedInFromRvTerminal: true,
 });
 
+const token2 = jwt.sign({
+	userId: 2,
+	loggedInFromRvTerminal: true,
+});
+
 const tokenNoRvTerminal = jwt.sign({
 	userId: 1,
 });
@@ -38,6 +43,44 @@ describe('routes: user', () => {
 		await knex.migrate.rollback();
 	});
 
+	describe('Changing user rfid', () => {
+		it('should succeed', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res.status).to.equal(204);
+		});
+		it('should not succeed if rfids collide false if user does not exist', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res.status).to.equal(204);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token2)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res2.status).to.equal(409);
+			const res3 = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res3.status).to.equal(204);
+		});
+	});
 	describe('Checking user existence', () => {
 		it('should return true if user exists', async () => {
 			const res = await chai.request(app).post('/api/v1/user/user_exists').send({

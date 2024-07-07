@@ -1127,6 +1127,8 @@ paths:
           '$ref': '#/components/responses/BadRequestErrorResponse'
         401:
           '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        409:
+           '$ref': '#/components/responses/IdentifierTakenErrorResponse'
   /api/v1/user/changePassword:
     post:
       summary: Change the account's password

@@ -4,6 +4,7 @@ export const up = async (knex) => {
 	}
 
 	await knex.raw('ALTER TABLE "RVPERSON" ADD COLUMN "rfid" TEXT');
+	await knex.raw('ALTER TABLE "RVPERSON" ADD CONSTRAINT rfid_uniq UNIQUE ("rfid")');
 };
 
 export const down = async (knex) => {
