@@ -12,12 +12,11 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-const user_token = jwt.sign({
-	userId: 1,
-});
-
-const token = jwt.sign({
+const adminToken = jwt.sign({
 	userId: 2,
+});
+const userToken = jwt.sign({
+	userId: 1,
 });
 
 after(async () => {
@@ -40,9 +39,26 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/users')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -51,7 +67,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/users/1')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
 		});
@@ -60,10 +76,27 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/users/77')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(404);
 			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users/1')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -72,7 +105,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changePassword')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					password: 'lol',
 				});
@@ -97,7 +130,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/99/changePassword')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					password: 'lol',
 				});
@@ -110,7 +143,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changePassword')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({});
 
 			expect(res.status).to.equal(400);
@@ -121,7 +154,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changePassword')
-				.set('Authorization', 'Bearer ' + user_token)
+				.set('Authorization', 'Bearer ' + userToken)
 				.send({ password: 'lol' });
 
 			expect(res.status).to.equal(403);
@@ -133,7 +166,7 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changeRole')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					role: 'ADMIN',
 				});
@@ -148,19 +181,21 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changeRole')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					role: 'ADMIN',
 				});
 
 			expect(res.status).to.equal(200);
+
+			expect(res.body.role).to.equal('ADMIN');
 		});
 
 		it('should error on nonexistent user', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/99/changeRole')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					role: 'ADMIN',
 				});
@@ -173,23 +208,46 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changeRole')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					role: 'abc',
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should error on invalid parameters', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/users/1/changeRole')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({});
 
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/users/1/changeRole')
+				.set('Authorization', 'Bearer ' + userToken)
+				.send({
+					role: 'ADMIN',
+				});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/users/1/changeRole').send({
+				role: 'ADMIN',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -198,9 +256,36 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/users/1/depositHistory')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should error on nonexistent user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users/88/depositHistory')
+				.set('Authorization', 'Bearer ' + adminToken);
+
+			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users/1/depositHistory')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1/depositHistory');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -209,9 +294,36 @@ describe('routes: admin users', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/users/1/purchaseHistory')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should error on nonexistent user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users/99/purchaseHistory')
+				.set('Authorization', 'Bearer ' + adminToken);
+
+			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/users/1/purchaseHistory')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/users/1/purchaseHistory');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

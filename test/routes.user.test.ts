@@ -101,6 +101,7 @@ describe('routes: user', () => {
 				garbage: 'garbage',
 			});
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 
@@ -112,6 +113,13 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/user');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -166,6 +174,7 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
 		});
 
 		it('should allow changing privacy level to valid value', async () => {
@@ -209,6 +218,20 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
+		});
+
+		it('should not allow modifying password', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/user')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'supersecret',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should error if no fields are specified', async () => {
@@ -219,6 +242,18 @@ describe('routes: user', () => {
 				.send({});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/user').send({
+				username: 'abcd',
+				fullName: 'abcd efgh',
+				email: 'abc@def.ghi',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -323,6 +358,16 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/deposit').send({
+				amount: 150,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 
 		it('should fail if not logged in from rv terminal', async () => {
@@ -355,6 +400,94 @@ describe('routes: user', () => {
 			const passwordMatches = await userStore.verifyPassword('abcdefg', user.passwordHash);
 
 			expect(passwordMatches).to.be.true;
+		});
+
+		it('should not return any passwords', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'abcdefg',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					username: 'mur',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changePassword').send({
+				password: 'abcdefg',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+	});
+
+	describe('Changing rfid', () => {
+		it('should change the rfid', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab45',
+				});
+
+			expect(res.status).to.equal(204);
+
+			const user = await userStore.findById(1);
+			
+			expect(user.rfidHash).to.equal(userStore.oldRvRfidHash('50ab45'))
+		});
+
+		it('should not return any rfids', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab25',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'pass',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changeRfid').send({
+				rfid: '50ab45',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

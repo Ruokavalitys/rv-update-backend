@@ -119,7 +119,7 @@ router.delete('/:categoryId', async (req: Authenticated_request, res) => {
 
 	if (categoryId == defaultCategory.categoryId) {
 		res.status(403).json({
-			error_code: 'bad_request',
+			error_code: 'forbidden_reference',
 			message: 'Cannot delete the default category',
 		});
 
@@ -142,7 +142,7 @@ router.delete('/:categoryId', async (req: Authenticated_request, res) => {
 		});
 
 		logger.info(
-			'User %s tried to delete non-exiting category with ID %d',
+			'User %s tried to delete non-existing category with ID %d',
 			req.user.username,
 			req.params.categoryId
 		);

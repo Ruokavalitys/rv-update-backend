@@ -26,6 +26,67 @@ describe('routes: authentication', () => {
 	afterEach(async () => {
 		await knex.migrate.rollback();
 	});
+	describe('Admin authentication', () => {
+		it('logging in with admin role should work', async () => {
+			/**
+			 * 		it('with valid credentials, should respond with an authentication token', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'normal_user',
+				password: 'hunter2',
+			});
+
+			expect(res.status).to.equal(200);
+
+			const token = jwt.verify(res.body.accessToken);
+			expect(token.data.userId).to.exist;
+
+			const user = await userStore.findByUsername('normal_user');
+			expect(token.data.userId).to.equal(user.userId);
+		});
+			**/
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'admin_user',
+				password: 'admin123',
+			});
+
+			expect(res.status).to.equal(200);
+
+			const decoded = jwt.verify(res.body.accessToken, process.env.JWT_SECRET);
+			expect(decoded.data.userId).to.exist;
+
+			const user = await userStore.findByUsername('admin_user');
+			expect(decoded.data.userId).to.equal(user.userId);
+		});
+
+		it('should error on nonexistent user', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'abc',
+				password: 'defgh',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
+		});
+
+		it('should error the same way if only password is wrong', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'normal_user',
+				password: 'hunter69',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				password: false,
+			});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+	});
 	describe('User RFID authentication', () => {
 		it('with valid credentials, should respond with an authentication token', async () => {
 			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
@@ -48,6 +109,7 @@ describe('routes: authentication', () => {
 				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
 			});
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('invalid request should result in a 400 bad request response', async () => {
@@ -57,6 +119,17 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('inactive user should not be able to login', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate/rfid').send({
+				rfid: '999999',
+				rvTerminalSecret: process.env.RV_TERMINAL_SECRET,
+			});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
 		});
 
 		it('should sign as rv terminal login if valid rvTerminalSecret ', async () => {
@@ -108,6 +181,7 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('with nonexistent user, should return a 401 unauthorized response', async () => {
@@ -117,6 +191,7 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_credentials');
 		});
 
 		it('invalid request should result in a 400 bad request response', async () => {
@@ -125,6 +200,17 @@ describe('routes: authentication', () => {
 			});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('inactive user should not be able to login', async () => {
+			const res = await chai.request(app).post('/api/v1/authenticate').send({
+				username: 'user_inactive',
+				password: 'inactive',
+			});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
 		});
 
 		it('should sign as rv terminal login if valid rvTerminalSecret ', async () => {

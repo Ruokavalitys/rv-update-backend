@@ -61,15 +61,19 @@ app.use('/api/v1/test/reset_data', api_reset_route);
 
 app.use((error, _req, res, next) => {
 	console.error(error);
-	logger.error(
-		'Invalid or missing fields in request: %s',
-		error.errors.map(({ path, message }) => `Field ${path.substring(6)} ${message}`)
-	);
+	logger.error('Invalid request for %s: %s', error.path, error.message);
 	if (error.status === 400) {
 		res.status(400).json({
 			error_code: 'bad_request',
-			message: 'Invalid or missing fields in request',
-			errors: error.errors.map(({ path, message }) => `Field ${path.substring(6)} ${message}`),
+			message: error.message,
+		});
+
+		return;
+	}
+	if (error.status === 401) {
+		res.status(401).json({
+			error_code: 'invalid_token',
+			message: error.message,
 		});
 
 		return;
