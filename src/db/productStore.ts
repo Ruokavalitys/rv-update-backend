@@ -1,4 +1,5 @@
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
+import actions from './actions.js';
 import knex from './knex.js';
 
 export const rowToProduct = (row) => {
@@ -22,7 +23,7 @@ export const rowToProduct = (row) => {
 /**
  * Return all products with match in barcode or description
  */
-const searchProducts = async (query) => {
+export const searchProducts = async (query) => {
 	const data = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -35,15 +36,17 @@ const searchProducts = async (query) => {
 			'PRICE.sellprice',
 			'PRICE.count'
 		)
-		.whereILike('RVITEM.descr', `%${query}%`)
-		.orWhereILike('PRICE.barcode', `%${query}%`);
+		.where((queryBuilder) => {
+			queryBuilder.whereILike('RVITEM.descr', `%${query}%`).orWhereILike('PRICE.barcode', `%${query}%`);
+		})
+		.andWhere('PRICE.endtime', null);
 	return data.map(rowToProduct);
 };
 
 /**
  * Returns all products and their stock quantities, if available.
  */
-const getProducts = async () => {
+export const getProducts = async () => {
 	const data = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -64,7 +67,7 @@ const getProducts = async () => {
 /**
  * Finds a product by its barcode.
  */
-const findByBarcode = async (barcode) => {
+export const findByBarcode = async (barcode) => {
 	const row = await knex('PRICE')
 		.rightJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
 		.leftJoin('PRODGROUP', 'RVITEM.pgrpid', 'PRODGROUP.pgrpid')
@@ -91,8 +94,9 @@ const findByBarcode = async (barcode) => {
 /**
  * Creates a new product if given barcode is not in use.
  */
-const insertProduct = async (productData, userId) => {
+export const insertProduct = async (productData, userId) => {
 	return await knex.transaction(async (trx) => {
+		const now = new Date();
 		const insertedRows = await knex('RVITEM')
 			.transacting(trx)
 			.insert({
@@ -101,22 +105,34 @@ const insertProduct = async (productData, userId) => {
 			})
 			.returning(['itemid']);
 
-		await knex('PRICE').transacting(trx).insert({
-			barcode: productData.barcode,
-			count: productData.stock,
-			buyprice: productData.buyPrice,
-			sellprice: productData.sellPrice,
-			itemid: insertedRows[0].itemid,
-			userid: userId,
-			starttime: new Date(),
-			endtime: null,
-		});
+		const priceRows = await knex('PRICE')
+			.transacting(trx)
+			.insert({
+				barcode: productData.barcode,
+				count: productData.stock,
+				buyprice: productData.buyPrice,
+				sellprice: productData.sellPrice,
+				itemid: insertedRows[0].itemid,
+				userid: userId,
+				starttime: new Date(),
+				endtime: null,
+			})
+			.returning('priceid');
 
 		const categoryRow = await knex('PRODGROUP')
 			.transacting(trx)
 			.select('descr')
 			.where('pgrpid', productData.categoryId)
 			.first();
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: now,
+			count: productData.stock,
+			actionid: actions.ITEM_CREATED,
+			userid: userId,
+			itemid: insertedRows[0].itemid,
+			priceid1: priceRows[0].priceid,
+		});
 
 		return {
 			barcode: productData.barcode,
@@ -135,7 +151,7 @@ const insertProduct = async (productData, userId) => {
 /**
  * Updates a product's information
  */
-const updateProduct = async (barcode, productData, userId) => {
+export const updateProduct = async (barcode, productData, userId) => {
 	/* productData may have fields { name, categoryId, buyPrice, sellPrice, stock } */
 	return await knex.transaction(async (trx) => {
 		const rvitemFields = deleteUndefinedFields({
@@ -210,7 +226,7 @@ const updateProduct = async (barcode, productData, userId) => {
 /**
  * Records a product purchase in the database.
  */
-const recordPurchase = async (barcode, userId, count) => {
+export const recordPurchase = async (barcode, userId, count) => {
 	return await knex.transaction(async (trx) => {
 		const now = new Date();
 
@@ -258,7 +274,7 @@ const recordPurchase = async (barcode, userId, count) => {
 				.insert({
 					time: now,
 					count: stock,
-					actionid: 5,
+					actionid: actions.BOUGHT_BY,
 					itemid: productId,
 					userid: userId,
 					priceid1: priceId,
@@ -280,7 +296,85 @@ const recordPurchase = async (barcode, userId, count) => {
 	});
 };
 
-const deleteProduct = async (barcode) => {
+/**
+ * Attempt to return a recently bought product
+ * may fail if recent non-returned purchases were not found
+ */
+export const returnPurchase = async (barcode: string, userId: number): Promise<{ success: boolean }> => {
+	return await knex.transaction(async (trx) => {
+		const now = new Date();
+
+		// find if user has non returned purchases
+		const product = await knex('PRICE')
+			.transacting(trx)
+			.andWhere('barcode', barcode)
+			.andWhere('endtime', null)
+			.first('priceid', 'itemid');
+		if (!product) {
+			return { success: false };
+		}
+
+		const fiveMinutesAgo = new Date();
+		fiveMinutesAgo.setTime(now.getTime() - 1000 * 60 * 5);
+		const recentPurchases = await knex('ITEMHISTORY')
+			.transacting(trx)
+			.innerJoin('SALDOHISTORY', 'ITEMHISTORY.saldhistid', 'SALDOHISTORY.saldhistid')
+			.leftJoin('ITEMHISTORY as ih2', 'ih2.itemhistid2', 'ITEMHISTORY.itemhistid')
+			.andWhere('ITEMHISTORY.actionid', actions.BOUGHT_BY)
+			.andWhere('ITEMHISTORY.userid', userId)
+			.andWhere('ITEMHISTORY.itemid', product.itemid)
+			.andWhere('ITEMHISTORY.time', '>', fiveMinutesAgo)
+			.andWhere('ih2.itemhistid', null)
+			.orderBy('ITEMHISTORY.time', 'desc')
+			.first('ITEMHISTORY.itemhistid', 'SALDOHISTORY.difference');
+
+		if (!recentPurchases) {
+			return { success: false };
+		}
+
+		const updatedPriceRows = await knex('PRICE')
+			.transacting(trx)
+			.innerJoin('RVITEM', 'PRICE.itemid', 'RVITEM.itemid')
+			.andWhere('barcode', barcode)
+			.andWhere('endtime', null)
+			.increment({ count: 1 })
+			.returning(['priceid', 'itemid', 'count']);
+
+		const priceId = updatedPriceRows[0].priceid;
+		const productId = updatedPriceRows[0].itemid;
+
+		const updatedPersonRows = await knex('RVPERSON')
+			.transacting(trx)
+			.where({ userid: userId })
+			.increment({ saldo: -recentPurchases.difference })
+			.returning(['saldo']);
+
+		const insertedSaldhistRows = await knex('SALDOHISTORY')
+			.transacting(trx)
+			.insert({
+				userid: userId,
+				time: now,
+				saldo: updatedPersonRows[0].saldo,
+				difference: -recentPurchases.difference,
+			})
+			.returning(['saldhistid']);
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: now,
+			count: updatedPriceRows[0].count,
+			actionid: actions.PRODUCT_RETURNED,
+			itemid: productId,
+			userid: userId,
+			priceid1: priceId,
+			itemhistid2: recentPurchases.itemhistid,
+			saldhistid: insertedSaldhistRows[0].saldhistid,
+		});
+
+		return { success: true };
+	});
+};
+
+export const deleteProduct = async (barcode) => {
 	return await knex.transaction(async (trx) => {
 		const row = await knex('PRICE')
 			.transacting(trx)
@@ -310,25 +404,30 @@ const deleteProduct = async (barcode) => {
 	});
 };
 
-const buyIn = async (barcode, count) => {
-	const row = await knex('PRICE').where({ barcode }).increment({ count }).returning(['count']);
+export const buyIn = async (barcode, count, userId) => {
+	return await knex.transaction(async (trx) => {
+		const row = await knex('PRICE')
+			.transacting(trx)
+			.where({ barcode })
+			.andWhere('PRICE.endtime', null)
+			.increment({ count })
+			.returning(['priceid', 'itemid', 'count']);
 
-	if (row.length === 0) {
-		return undefined;
-	}
+		if (row.length === 0) {
+			return undefined;
+		}
 
-	return row[0].count;
+		const newStock = row[0].count;
+
+		await knex('ITEMHISTORY').transacting(trx).insert({
+			time: new Date(),
+			count: newStock,
+			actionid: actions.PRODUCT_BUY_IN,
+			itemid: row[0].itemid,
+			userid: userId,
+			priceid1: row[0].priceid,
+		});
+
+		return newStock;
+	});
 };
-
-const productStore = {
-	searchProducts,
-	getProducts,
-	findByBarcode,
-	insertProduct,
-	updateProduct,
-	recordPurchase,
-	deleteProduct,
-	buyIn,
-};
-
-export default productStore;

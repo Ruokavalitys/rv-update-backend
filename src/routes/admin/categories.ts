@@ -1,5 +1,5 @@
 import express from 'express';
-import categoryStore from '../../db/categoryStore.js';
+import * as categoryStore from '../../db/categoryStore.js';
 import { getPreference, preferences } from '../../db/preferences.js';
 import logger from '../../logger.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
@@ -8,7 +8,7 @@ const { DEFAULT_PRODUCT_CATEGORY } = preferences;
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN', tokenSecret: process.env.JWT_SECRET }));
 
 router.get('/', async (req: Authenticated_request, res) => {
 	const user = req.user;
@@ -119,7 +119,7 @@ router.delete('/:categoryId', async (req: Authenticated_request, res) => {
 
 	if (categoryId == defaultCategory.categoryId) {
 		res.status(403).json({
-			error_code: 'bad_request',
+			error_code: 'forbidden_reference',
 			message: 'Cannot delete the default category',
 		});
 
@@ -142,7 +142,7 @@ router.delete('/:categoryId', async (req: Authenticated_request, res) => {
 		});
 
 		logger.info(
-			'User %s tried to delete non-exiting category with ID %d',
+			'User %s tried to delete non-existing category with ID %d',
 			req.user.username,
 			req.params.categoryId
 		);

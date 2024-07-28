@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { RFID_SALT } from '../../userStore.js';
+import { oldRvRfidHash } from '../../userStore.js';
 
 export const rvpersons = [
 	{
@@ -21,7 +21,7 @@ export const rvpersons = [
 		pass: bcrypt.hashSync('admin123', 11),
 		saldo: 500,
 		realname: 'BOFH',
-		rfid: bcrypt.hashSync('1234', RFID_SALT),
+		rfid: oldRvRfidHash('1234'),
 	},
 	{
 		userid: 3,
@@ -42,5 +42,6 @@ export const rvpersons = [
 		pass: bcrypt.hashSync('inactive', 11),
 		saldo: -1100,
 		realname: 'Inactive User',
+		rfid: oldRvRfidHash('999999'),
 	},
 ];

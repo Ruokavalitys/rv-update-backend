@@ -1,0 +1,36 @@
+LOAD DATABASE
+	FROM mysql://rv-ro:PASSWORD@127.0.0.1:3306/RV
+	INTO pgsql://rvadmin:unsecure@127.0.0.1:5432/rv_dev
+WITH include drop, truncate, quote identifiers, reset sequences
+
+CAST
+	type int to integer drop typemod,
+	type int with extra auto_increment to serial drop typemod,
+
+	type varchar to text drop typemod using remove-null-characters 
+
+AFTER LOAD DO
+	$$ DROP TABLE "DAYHISTORY"; $$,
+
+	$$ DROP SCHEMA public; $$,
+	$$ ALTER SCHEMA "RV" RENAME TO public; $$,
+
+	$$ UPDATE "PERSONHIST" SET userid2=userid1 WHERE userid2=0 $$,
+	$$ ALTER TABLE "PERSONHIST" ADD CONSTRAINT "PERSONHIST_ibfk_3" FOREIGN KEY("userid2") REFERENCES "RVPERSON"("userid") ON UPDATE RESTRICT ON DELETE RESTRICT; $$,
+	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('DEPOSITED MONEY CASH', 26); $$,
+	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('DEPOSITED MONEY BANKTRANSFER', 27); $$,
+	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('PRODUCT RETURNED', 28); $$,
+	$$ INSERT INTO "ACTION" (action, actionid) VALUES ('PRODUCT BUY-IN', 29); $$,
+	$$ UPDATE "RVITEM" SET descr = replace(descr, 'Ã¶', 'ö'); $$,
+	$$ UPDATE "RVITEM" SET descr = replace(descr, 'Ã¤', 'ä'); $$,
+
+	$$ CREATE SEQUENCE "RVPERSON_userid_seq" AS integer; $$,
+	$$ SELECT setval('"RVPERSON_userid_seq"', max("userid")) FROM "RVPERSON"; $$,
+	$$ ALTER TABLE "RVPERSON" ALTER COLUMN "userid" SET DEFAULT nextval('"RVPERSON_userid_seq"'); $$,
+	$$ ALTER SEQUENCE "RVPERSON_userid_seq" OWNED BY "RVPERSON"."userid"; $$
+
+	$$ CREATE SEQUENCE "RVITEM_itemid_seq" AS integer; $$,
+	$$ SELECT setval('"RVITEM_itemid_seq"', max("itemid")) FROM "RVITEM"; $$,
+	$$ ALTER TABLE "RVITEM" ALTER COLUMN "itemid" SET DEFAULT nextval('"RVITEM_itemid_seq"'); $$,
+	$$ ALTER SEQUENCE "RVITEM_itemid_seq" OWNED BY "RVITEM"."itemid"; $$
+;

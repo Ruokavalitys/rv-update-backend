@@ -19,7 +19,7 @@ services:
             - DB_NAME=rv
             - DB_PORT=5432
             - JWT_SECRET=unsecure1
-            - JWT_ADMIN_SECRET=unsecure2
+            - RV_TERMINAL_SECRET=unsecure
         volumes:
             - ./src:/usr/src/app/src
             - ./test:/usr/src/app/test
@@ -31,7 +31,7 @@ services:
         ports:
             - 127.0.0.1:5432:5432
         volumes:
-            - rv-postgres-data:/var/lib/postgresql/data
+            - ./data/rv-postgres-data:/var/lib/postgresql/data
             - ./db-init-scripts:/docker-entrypoint-initdb.d
         environment:
             - POSTGRES_USER=rvadmin

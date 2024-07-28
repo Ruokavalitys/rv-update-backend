@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 
 import app from '../src/app.js';
 import knex, { test_teardown } from '../src/db/knex.js';
-import userStore from '../src/db/userStore.js';
+import * as userStore from '../src/db/userStore.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
 
@@ -111,6 +111,49 @@ describe('routes: register', () => {
 
 			const user = await userStore.findByUsername('abc');
 			expect(user).to.exist;
+		});
+
+		it('It should return the new user', async () => {
+			const res = await chai.request(app).post('/api/v1/register').send({
+				username: 'abc',
+				password: 'def',
+				fullName: 'No Body',
+				email: 'person@email.com',
+			});
+
+			expect(res.status).to.equal(201);
+
+			const user = res.body.user;
+			expect(user).to.exist;
+			expect(user.email).to.equal('person@email.com');
+		});
+
+		it('New user should have role USER1', async () => {
+			const res = await chai.request(app).post('/api/v1/register').send({
+				username: 'abc',
+				password: 'def',
+				fullName: 'No Body',
+				email: 'person@email.com',
+			});
+
+			expect(res.status).to.equal(201);
+
+			const user = await userStore.findByUsername('abc');
+			expect(user.role).to.equal('USER1');
+		});
+
+		it('New user should have no money', async () => {
+			const res = await chai.request(app).post('/api/v1/register').send({
+				username: 'abc',
+				password: 'def',
+				fullName: 'No Body',
+				email: 'person@email.com',
+			});
+
+			expect(res.status).to.equal(201);
+
+			const user = await userStore.findByUsername('abc');
+			expect(user.moneyBalance).to.equal(0);
 		});
 	});
 });

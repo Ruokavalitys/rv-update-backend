@@ -1,5 +1,5 @@
 import express from 'express';
-import userStore from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import logger from './../logger.js';
 
 const router = express.Router();
@@ -48,6 +48,7 @@ router.post('/', async (req, res) => {
 			email: newUser.email,
 			moneyBalance: newUser.moneyBalance,
 			role: newUser.role,
+			privacyLevel: newUser.privacyLevel,
 		},
 	});
 });

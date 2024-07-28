@@ -14,7 +14,7 @@ const rowToCategory = (row) => {
 /**
  * Returns all categories.
  */
-const getCategories = async () => {
+export const getCategories = async () => {
 	const data = await knex('PRODGROUP').select('PRODGROUP.pgrpid', 'PRODGROUP.descr');
 	return data.map(rowToCategory);
 };
@@ -22,7 +22,7 @@ const getCategories = async () => {
 /**
  * Finds a category by its id.
  */
-const findById = async (categoryId) => {
+export const findById = async (categoryId) => {
 	const row = await knex('PRODGROUP')
 		.select('PRODGROUP.pgrpid', 'PRODGROUP.descr')
 		.where({ pgrpid: categoryId })
@@ -30,7 +30,7 @@ const findById = async (categoryId) => {
 	return rowToCategory(row);
 };
 
-const insertCategory = async (description) => {
+export const insertCategory = async (description) => {
 	const insertedRows = await knex('PRODGROUP').insert({ descr: description }).returning(['pgrpid']);
 	return {
 		categoryId: insertedRows[0].pgrpid,
@@ -38,7 +38,7 @@ const insertCategory = async (description) => {
 	};
 };
 
-const updateCategory = async (categoryId, description) => {
+export const updateCategory = async (categoryId, description) => {
 	await knex('PRODGROUP').update({ descr: description }).where({ pgrpid: categoryId });
 	return {
 		categoryId: categoryId,
@@ -46,7 +46,7 @@ const updateCategory = async (categoryId, description) => {
 	};
 };
 
-const deleteCategory = async (categoryId, moveProductsTo) => {
+export const deleteCategory = async (categoryId, moveProductsTo) => {
 	const movedProductIdRows = await knex('RVITEM')
 		.where('pgrpid', categoryId)
 		.update({
@@ -75,13 +75,3 @@ const deleteCategory = async (categoryId, moveProductsTo) => {
 		movedProducts: movedProducts.map((row) => row.barcode),
 	};
 };
-
-const categoryStore = {
-	getCategories,
-	findById,
-	insertCategory,
-	updateCategory,
-	deleteCategory,
-};
-
-export default categoryStore;

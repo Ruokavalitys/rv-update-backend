@@ -1,14 +1,14 @@
 import express from 'express';
-import categoryStore from '../../db/categoryStore.js';
-import historyStore from '../../db/historyStore.js';
-import productStore from '../../db/productStore.js';
+import * as categoryStore from '../../db/categoryStore.js';
+import * as historyStore from '../../db/historyStore.js';
+import * as productStore from '../../db/productStore.js';
 import logger from '../../logger.js';
 import { deleteUndefinedFields } from '../../utils/objectUtils.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN' }));
 
 interface Products_requests extends Authenticated_request {
 	product?: any;
@@ -211,6 +211,8 @@ router.patch('/:barcode(\\d{1,14})', async (req: Products_requests, res) => {
 	});
 });
 
+/* Disabled because of other endpoints misbehaving with deleted products.
+See https://github.com/TKOaly/rv-backend/issues/69
 router.delete('/:barcode(\\d{1,14})', async (req, res) => {
 	const product = await productStore.deleteProduct(req.params.barcode);
 
@@ -226,13 +228,13 @@ router.delete('/:barcode(\\d{1,14})', async (req, res) => {
 	res.status(200).json({
 		deletedProduct: product,
 	});
-});
+});*/
 
 router.post('/:barcode(\\d{1,14})/buyIn', async (req: Products_requests, res) => {
 	const barcode = req.params.barcode;
 	const { count, buyPrice, sellPrice } = req.body;
 
-	const stock = await productStore.buyIn(barcode, count);
+	const stock = await productStore.buyIn(barcode, count, req.user.userId);
 
 	logger.info(
 		"User %s bought in %d items of product '%s' (%s)",

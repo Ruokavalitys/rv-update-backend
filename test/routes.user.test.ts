@@ -2,18 +2,29 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import app from '../src/app.js';
-import historyStore from '../src/db/historyStore.js';
+import * as historyStore from '../src/db/historyStore.js';
 import knex, { test_teardown } from '../src/db/knex.js';
-import userStore from '../src/db/userStore.js';
+import * as userStore from '../src/db/userStore.js';
 import jwt from '../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
+import actions from '../src/db/actions.js';
 
 const expect = chai.expect;
 
 chai.use(chaiHttp);
 
 const token = jwt.sign({
+	userId: 1,
+	loggedInFromRvTerminal: true,
+});
+
+const token2 = jwt.sign({
+	userId: 2,
+	loggedInFromRvTerminal: true,
+});
+
+const tokenNoRvTerminal = jwt.sign({
 	userId: 1,
 });
 
@@ -32,6 +43,44 @@ describe('routes: user', () => {
 		await knex.migrate.rollback();
 	});
 
+	describe('Changing user rfid', () => {
+		it('should succeed', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res.status).to.equal(204);
+		});
+		it('should not succeed if rfids collide false if user does not exist', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res.status).to.equal(204);
+			const res2 = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token2)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res2.status).to.equal(409);
+			const res3 = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '1337abcd',
+				});
+			expect(res3.status).to.equal(204);
+		});
+	});
 	describe('Checking user existence', () => {
 		it('should return true if user exists', async () => {
 			const res = await chai.request(app).post('/api/v1/user/user_exists').send({
@@ -52,6 +101,7 @@ describe('routes: user', () => {
 				garbage: 'garbage',
 			});
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 	});
 
@@ -63,6 +113,13 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/user');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -117,6 +174,38 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
+		});
+
+		it('should allow changing privacy level to valid value', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePrivacylevel')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					privacyLevel: 2,
+				});
+
+			expect(res.status).to.equal(204);
+			const res2 = await chai
+				.request(app)
+				.get('/api/v1/user')
+				.set('Authorization', 'Bearer ' + token);
+
+			expect(res2.status).to.equal(200);
+			expect(res2.body.user.privacyLevel).to.equal(2);
+		});
+
+		it('should deny changing privacy level to invalid value', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePrivacylevel')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					privacyLevel: 3,
+				});
+
+			expect(res.status).to.equal(400);
 		});
 
 		it('should deny changing email to one already taken', async () => {
@@ -129,6 +218,20 @@ describe('routes: user', () => {
 				});
 
 			expect(res.status).to.equal(409);
+			expect(res.body.error_code).to.equal('identifier_taken');
+		});
+
+		it('should not allow modifying password', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/user')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'supersecret',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
 		});
 
 		it('should error if no fields are specified', async () => {
@@ -139,17 +242,30 @@ describe('routes: user', () => {
 				.send({});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/user').send({
+				username: 'abcd',
+				fullName: 'abcd efgh',
+				email: 'abc@def.ghi',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
 	describe('Depositing money', () => {
-		it('should increase account balance', async () => {
+		it('should increase account balance on cash deposit', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/user/deposit')
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: 150,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(200);
@@ -159,6 +275,50 @@ describe('routes: user', () => {
 			const user = await userStore.findById(1);
 
 			expect(user.moneyBalance).to.equal(650);
+		});
+
+		it('should increase account balance on banktransfer deposit', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+					type: 'banktransfer',
+				});
+
+			expect(res.status).to.equal(200);
+
+			expect(res.body.accountBalance).to.equal(650);
+
+			const user = await userStore.findById(1);
+
+			expect(user.moneyBalance).to.equal(650);
+		});
+
+		it('should error on depositing without type', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+				});
+
+			expect(res.status).to.equal(400);
+		});
+
+		it('should error on depositing with unknown type', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					amount: 150,
+					type: 'bitcoin',
+				});
+
+			expect(res.status).to.equal(400);
 		});
 
 		it('should create an event into deposit history', async () => {
@@ -171,6 +331,7 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: 2371,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(200);
@@ -182,6 +343,7 @@ describe('routes: user', () => {
 			const depositEvent = newDepositHistory[0];
 
 			expect(depositEvent.amount).to.equal(2371);
+			expect(depositEvent.type).to.equal(actions.DEPOSITED_MONEY_CASH);
 			expect(depositEvent.balanceAfter).to.equal(res.body.accountBalance);
 		});
 
@@ -192,9 +354,33 @@ describe('routes: user', () => {
 				.set('Authorization', 'Bearer ' + token)
 				.send({
 					amount: -200,
+					type: 'cash',
 				});
 
 			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/deposit').send({
+				amount: 150,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should fail if not logged in from rv terminal', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/deposit')
+				.set('Authorization', 'Bearer ' + tokenNoRvTerminal)
+				.send({
+					amount: 150,
+					type: 'cash',
+				});
+
+			expect(res.status).to.equal(403);
 		});
 	});
 
@@ -214,6 +400,94 @@ describe('routes: user', () => {
 			const passwordMatches = await userStore.verifyPassword('abcdefg', user.passwordHash);
 
 			expect(passwordMatches).to.be.true;
+		});
+
+		it('should not return any passwords', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'abcdefg',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changePassword')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					username: 'mur',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changePassword').send({
+				password: 'abcdefg',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+	});
+
+	describe('Changing rfid', () => {
+		it('should change the rfid', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab45',
+				});
+
+			expect(res.status).to.equal(204);
+
+			const user = await userStore.findById(1);
+
+			expect(user.rfidHash).to.equal(userStore.oldRvRfidHash('50ab45'));
+		});
+
+		it('should not return any rfids', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					rfid: '50ab25',
+				});
+
+			expect(res.status).to.equal(204);
+			expect(res.body).to.be.empty;
+		});
+
+		it('should error on invalid parameters', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/user/changeRfid')
+				.set('Authorization', 'Bearer ' + token)
+				.send({
+					password: 'pass',
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/user/changeRfid').send({
+				rfid: '50ab45',
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

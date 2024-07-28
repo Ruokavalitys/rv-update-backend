@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../src/app.js';
 import knex, { test_teardown } from '../../src/db/knex.js';
-import productStore from '../../src/db/productStore.js';
+import * as productStore from '../../src/db/productStore.js';
 import jwt from '../../src/jwt/token.js';
 
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
@@ -11,19 +11,14 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-const token = jwt.sign(
-	{
-		userId: 2,
-	},
-	process.env.JWT_ADMIN_SECRET
-);
-
-const normalUserToken = jwt.sign(
-	{
-		userId: 1,
-	},
-	process.env.JWT_SECRET
-);
+const adminToken = jwt.sign({
+	userId: 2,
+	loggedInFromRvTerminal: true,
+});
+const userToken = jwt.sign({
+	userId: 1,
+	loggedInFromRvTerminal: true,
+});
 
 after(async () => {
 	await test_teardown();
@@ -45,9 +40,26 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/products')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -56,7 +68,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
 		});
@@ -65,9 +77,27 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/products/666')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/products/5053990123506')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products/5053990123506');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -76,7 +106,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					barcode: '575757575757',
 					name: 'Opossumin lihaa',
@@ -99,7 +129,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					barcode: '575757575757',
 					name: 'Opossumin lihaa',
@@ -110,13 +140,19 @@ describe('routes: admin products', () => {
 				});
 
 			expect(res.status).to.equal(201);
+
+			const newProduct = res.body.product;
+			expect(newProduct).to.exist;
+			expect(newProduct.barcode).to.equal('575757575757');
+			expect(newProduct.name).to.equal('Opossumin lihaa');
+			expect(newProduct.category.categoryId).to.equal(24);
 		});
 
 		it('should error if barcode is already taken', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					barcode: '5053990123506',
 					name: 'Opossumin lihaa',
@@ -135,7 +171,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					barcode: '575757575757',
 					name: 'Opossumin lihaa',
@@ -153,7 +189,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					barcode: '575757575757',
 					name: 'Opossumin lihaa',
@@ -164,6 +200,38 @@ describe('routes: admin products', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/products')
+				.set('Authorization', 'Bearer ' + userToken)
+				.send({
+					barcode: '575757575757',
+					name: 'Opossumin lihaa',
+					categoryId: 24,
+					buyPrice: 367,
+					sellPrice: 370,
+					stock: 1,
+				});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/products').send({
+				barcode: '575757575757',
+				name: 'Opossumin lihaa',
+				categoryId: 24,
+				buyPrice: 367,
+				sellPrice: 370,
+				stock: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
 	describe('Modifying product data', () => {
@@ -171,7 +239,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					name: 'Koalan lihaa',
 					categoryId: 24,
@@ -189,10 +257,12 @@ describe('routes: admin products', () => {
 		});
 
 		it('should allow modifying only some fields', async () => {
+			const originalProduct = await productStore.findByBarcode('5053990123506');
+
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					buyPrice: 5000,
 				});
@@ -202,25 +272,30 @@ describe('routes: admin products', () => {
 			const updatedProduct = await productStore.findByBarcode('5053990123506');
 			expect(updatedProduct).to.exist;
 			expect(updatedProduct.buyPrice).to.equal(5000);
+			expect(updatedProduct.sellPrice).to.equal(originalProduct.sellPrice);
 		});
 
 		it('should return the updated product', async () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					buyPrice: 5000,
 				});
 
 			expect(res.status).to.equal(200);
+
+			const updatedProduct = res.body.product;
+			expect(updatedProduct).to.exist;
+			expect(updatedProduct.buyPrice).to.equal(5000);
 		});
 
 		it('should error on nonexistent product', async () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/88888888')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					buyPrice: 5000,
 				});
@@ -233,7 +308,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					categoryId: 999,
 				});
@@ -246,7 +321,20 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.patch('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
+				.send({
+					stock: false,
+				});
+
+			expect(res.status).to.equal(400);
+			expect(res.body.error_code).to.equal('bad_request');
+		});
+
+		it('should error on unknown fields', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/products/5053990123506')
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					aaa: 4,
 				});
@@ -254,38 +342,77 @@ describe('routes: admin products', () => {
 			expect(res.status).to.equal(400);
 			expect(res.body.error_code).to.equal('bad_request');
 		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.patch('/api/v1/admin/products/5053990123506')
+				.set('Authorization', 'Bearer ' + userToken)
+				.send({
+					name: 'Koalan lihaa',
+					categoryId: 24,
+					buyPrice: 367,
+					sellPrice: 370,
+					stock: 1,
+				});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).patch('/api/v1/admin/products/5053990123506').send({
+				name: 'Koalan lihaa',
+				categoryId: 24,
+				buyPrice: 367,
+				sellPrice: 370,
+				stock: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
 
+	/* Disabled because of other endpoints misbehaving with deleted products.
+	See https://github.com/TKOaly/rv-backend/issues/69
 	describe('Deleting a product', () => {
 		it('should fail on nonexisting product', async () => {
 			const res = await chai
 				.request(app)
 				.delete('/api/v1/admin/products/88888888')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(404);
 			expect(res.body.error_code).to.equal('not_found');
 		});
 
 		it('should return the deleted product', async () => {
+			const originalProduct = await productStore.findByBarcode('5053990123506');
+
 			const res = await chai
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+
+			const deletedProduct = res.body.deletedProduct;
+			expect(deletedProduct).to.exist;
+			expect(deletedProduct.name).to.equal(originalProduct.name);
+			expect(deletedProduct.category.categoryId).to.equal(originalProduct.category.categoryId);
 		});
 
 		it("should cause any requests for that product's information to fail", async () => {
 			await chai
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			const lookup = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(lookup.status).to.equal(404);
 			expect(lookup.body.error_code).to.equal('not_found');
@@ -295,12 +422,12 @@ describe('routes: admin products', () => {
 			await chai
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			const listing = await chai
 				.request(app)
 				.get('/api/v1/admin/products')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(listing.body.products.find((item) => item.barcode === '5053990123506')).to.be.an('undefined');
 		});
@@ -309,26 +436,44 @@ describe('routes: admin products', () => {
 			await chai
 				.request(app)
 				.delete('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			const purchase = await chai
 				.request(app)
 				.post('/api/v1/products/5053990123506/purchase')
-				.set('Authorization', 'Bearer ' + normalUserToken)
+				.set('Authorization', 'Bearer ' + userToken)
 				.send({
 					count: 1,
 				});
 
 			expect(purchase.status).to.equal(404);
 		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.delete('/api/v1/admin/products/5053990123506')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).delete('/api/v1/admin/products/5053990123506');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
+		});
 	});
+	*/
 
 	describe('Buy-in of a product', () => {
 		it('should fail on nonexisting products', async () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products/88888888/buyIn')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					count: 1,
 					buyPrice: 1,
@@ -353,7 +498,7 @@ describe('routes: admin products', () => {
 				const res = await chai
 					.request(app)
 					.post('/api/v1/admin/products/5053990123506/buyIn')
-					.set('Authorization', 'Bearer ' + token)
+					.set('Authorization', 'Bearer ' + adminToken)
 					.send(invalidRequest);
 
 				expect(res.status).to.equal(400, `request should fail when field ${missingField} is not defined`);
@@ -366,7 +511,7 @@ describe('routes: admin products', () => {
 				const res = await chai
 					.request(app)
 					.post('/api/v1/admin/products/5053990123506/buyIn')
-					.set('Authorization', 'Bearer ' + token)
+					.set('Authorization', 'Bearer ' + adminToken)
 					.send(invalidRequest);
 
 				expect(res.status).to.equal(
@@ -380,25 +525,28 @@ describe('routes: admin products', () => {
 			const pre_query = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(pre_query.status).to.equal(200);
 			const initial_stock = pre_query.body.product.stock;
 
-			await chai
+			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products/5053990123506/buyIn')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					count: 1,
 					buyPrice: 1,
 					sellPrice: 1,
 				});
 
+			expect(res.status).to.equal(200);
+			expect(res.body.stock).to.equal(initial_stock + 1);
+
 			const post_query = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(post_query.status).to.equal(200);
 			expect(post_query.body.product.stock).to.equal(initial_stock + 1);
@@ -408,7 +556,7 @@ describe('routes: admin products', () => {
 			const pre_query = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(pre_query.status).to.equal(200);
 			const { buyPrice: initialBuyPrice, sellPrice: initialSellPrice } = pre_query.body.product;
@@ -416,7 +564,7 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.post('/api/v1/admin/products/5053990123506/buyIn')
-				.set('Authorization', 'Bearer ' + token)
+				.set('Authorization', 'Bearer ' + adminToken)
 				.send({
 					count: 1,
 					buyPrice: initialBuyPrice + 1,
@@ -424,15 +572,43 @@ describe('routes: admin products', () => {
 				});
 
 			expect(res.status).to.equal(200);
+			expect(res.body.sellPrice).to.equal(initialSellPrice + 1);
+			expect(res.body.buyPrice).to.equal(initialBuyPrice + 1);
 
 			const post_query = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(post_query.status).to.equal(200);
 			expect(post_query.body.product.sellPrice).to.equal(initialSellPrice + 1);
 			expect(post_query.body.product.buyPrice).to.equal(initialBuyPrice + 1);
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.post('/api/v1/admin/products/5053990123506/buyIn')
+				.set('Authorization', 'Bearer ' + userToken)
+				.send({
+					count: 1,
+					buyPrice: 1,
+					sellPrice: 1,
+				});
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).post('/api/v1/admin/products/5053990123506/buyIn').send({
+				count: 1,
+				buyPrice: 1,
+				sellPrice: 1,
+			});
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 
@@ -441,9 +617,36 @@ describe('routes: admin products', () => {
 			const res = await chai
 				.request(app)
 				.get('/api/v1/admin/products/5053990123506/purchaseHistory')
-				.set('Authorization', 'Bearer ' + token);
+				.set('Authorization', 'Bearer ' + adminToken);
 
 			expect(res.status).to.equal(200);
+		});
+
+		it('should error on nonexistent product', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/products/333344445555/purchaseHistory')
+				.set('Authorization', 'Bearer ' + adminToken);
+
+			expect(res.status).to.equal(404);
+			expect(res.body.error_code).to.equal('not_found');
+		});
+
+		it('should not be called by unprivileged user', async () => {
+			const res = await chai
+				.request(app)
+				.get('/api/v1/admin/products/5053990123506/purchaseHistory')
+				.set('Authorization', 'Bearer ' + userToken);
+
+			expect(res.status).to.equal(403);
+			expect(res.body.error_code).to.equal('not_authorized');
+		});
+
+		it('should not be called without authentication', async () => {
+			const res = await chai.request(app).get('/api/v1/admin/products/5053990123506/purchaseHistory');
+
+			expect(res.status).to.equal(401);
+			expect(res.body.error_code).to.equal('invalid_token');
 		});
 	});
 });

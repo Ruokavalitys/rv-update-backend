@@ -1,13 +1,13 @@
 import express from 'express';
-import boxStore from '../../db/boxStore.js';
-import productStore from '../../db/productStore.js';
+import * as boxStore from '../../db/boxStore.js';
+import * as productStore from '../../db/productStore.js';
 import logger from '../../logger.js';
 import { deleteUndefinedFields } from '../../utils/objectUtils.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN', tokenSecret: process.env.JWT_SECRET }));
 
 const mapDatabaseBoxToApiBox = (box) => ({
 	boxBarcode: box.boxBarcode,
@@ -27,9 +27,10 @@ const mapDatabaseBoxToApiBox = (box) => ({
 
 router.get('/', async (req: Authenticated_request, res) => {
 	const user = req.user;
+	const itembarcode: string = req.body.itembarcode;
 
 	try {
-		const boxes = await boxStore.getBoxes();
+		const boxes = await boxStore.getBoxes(itembarcode);
 		const mappedBoxes = boxes.map(mapDatabaseBoxToApiBox);
 
 		logger.info('User %s fetched boxes as admin', user.username);
@@ -73,11 +74,14 @@ router.post('/', async (req: Authenticated_request, res) => {
 		return;
 	}
 
-	const newBox = await boxStore.insertBox({
-		boxBarcode,
-		itemsPerBox,
-		productBarcode,
-	});
+	const newBox = await boxStore.insertBox(
+		{
+			boxBarcode,
+			itemsPerBox,
+			productBarcode,
+		},
+		user.userId
+	);
 
 	logger.info(
 		'User %s created new box with data {boxBarcode: %s, itemsPerBox: %s, productBarcode: %s}',
@@ -89,6 +93,14 @@ router.post('/', async (req: Authenticated_request, res) => {
 	res.status(201).json({
 		box: mapDatabaseBoxToApiBox(newBox),
 	});
+});
+
+router.post('/search', async (req: Authenticated_request, res) => {
+	const user = req.user;
+	const query = req.body.query;
+	const result = await boxStore.searchBoxes(query);
+	logger.info('User %s searched for boxes with query: %s', user.username, query);
+	res.status(200).json({ boxes: result });
 });
 
 router.get('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) => {
@@ -152,7 +164,8 @@ router.patch('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) 
 		deleteUndefinedFields({
 			itemsPerBox,
 			productBarcode,
-		})
+		}),
+		user.userId
 	);
 
 	logger.info(
@@ -213,7 +226,7 @@ router.post('/:boxBarcode(\\d{1,14})/buyIn', async (req: Authenticated_request, 
 		product: { sellPrice: oldsellprice, buyPrice: oldbuyprice },
 	} = box;
 
-	const stock = await boxStore.buyIn(boxBarcode, req.body.boxCount);
+	const stock = await boxStore.buyIn(boxBarcode, req.body.boxCount, req.user.userId);
 
 	logger.info(
 		"User %s bought in %d boxes (%s) - total of %d items of product '%s' (%s)",

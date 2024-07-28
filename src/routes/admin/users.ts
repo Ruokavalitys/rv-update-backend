@@ -1,15 +1,15 @@
 import express from 'express';
-import historyStore from '../../db/historyStore.js';
-import userStore, { type user } from '../../db/userStore.js';
+import * as historyStore from '../../db/historyStore.js';
+import * as userStore from '../../db/userStore.js';
 import logger from '../../logger.js';
 import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
 
 const router = express.Router();
 
-router.use(authMiddleware('ADMIN', process.env.JWT_ADMIN_SECRET));
+router.use(authMiddleware({ requiredRole: 'ADMIN' }));
 
 interface Users_request extends Authenticated_request {
-	routeUser?: user;
+	routeUser?: userStore.user;
 }
 
 router.param('userId', async (req: Users_request, res, next) => {
@@ -43,6 +43,7 @@ router.get('/', async (req: Users_request, res) => {
 				email: user.email,
 				moneyBalance: user.moneyBalance,
 				role: user.role,
+				privacyLevel: user.privacyLevel,
 			};
 		});
 
@@ -70,6 +71,7 @@ router.get('/:userId(\\d+)', async (req: Users_request, res) => {
 			email: req.routeUser.email,
 			moneyBalance: req.routeUser.moneyBalance,
 			role: req.routeUser.role,
+			privacyLevel: req.routeUser.privacyLevel,
 		},
 	});
 });
@@ -86,6 +88,14 @@ router.post('/:userId(\\d+)/changeRole', async (req: Users_request, res) => {
 	res.status(200).json({
 		role: updatedUser.role,
 	});
+});
+
+router.post('/:userId(\\d+)/changePassword', async (req: Users_request, res) => {
+	await userStore.updateUser(req.routeUser.userId, { password: req.body.password });
+
+	logger.info('User %s changed password of user %s', req.user.username, req.routeUser.userId);
+
+	res.sendStatus(200);
 });
 
 router.get('/:userId(\\d+)/purchaseHistory', async (req: Users_request, res) => {

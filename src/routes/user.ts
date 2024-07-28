@@ -1,5 +1,5 @@
 import express from 'express';
-import userStore from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import logger from '../logger.js';
 import { deleteUndefinedFields } from '../utils/objectUtils.js';
 import authMiddleware, { type Authenticated_request } from './authMiddleware.js';
@@ -30,6 +30,7 @@ router.get('/', async (req: Authenticated_request, res) => {
 			email: user.email,
 			moneyBalance: user.moneyBalance,
 			role: user.role,
+			privacyLevel: user.privacyLevel,
 		},
 	});
 });
@@ -98,15 +99,17 @@ router.patch('/', async (req: Authenticated_request, res) => {
 			email: updatedUser.email,
 			moneyBalance: updatedUser.moneyBalance,
 			role: updatedUser.role,
+			privacyLevel: user.privacyLevel,
 		},
 	});
 });
 
-router.post('/deposit', async (req: Authenticated_request, res) => {
+router.post('/deposit', authMiddleware({ rvTerminalRequired: true }), async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const amount = req.body.amount;
+	const type = req.body.type;
 
-	const deposit = await userStore.recordDeposit(user.userId, amount);
+	const deposit = await userStore.recordDeposit(user.userId, amount, type);
 
 	logger.info('User %s deposited %s cents', user.username, amount);
 	res.status(200).json({
@@ -120,10 +123,30 @@ router.post('/deposit', async (req: Authenticated_request, res) => {
 	});
 });
 
+router.post('/changePrivacylevel', async (req: Authenticated_request, res) => {
+	const user = req.user;
+	const privacyLevel = req.body.privacyLevel;
+
+	await userStore.updateUser(user.userId, { privacyLevel: privacyLevel });
+
+	logger.info('User %s changed privacy level to %s', user.username, privacyLevel);
+	res.status(204).end();
+});
+
 router.post('/changeRfid', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const rfid = req.body.rfid;
 
+	const existing_user = await userStore.findByRfid(rfid);
+
+	if (existing_user != undefined && existing_user.userId != user.userId) {
+		logger.error('User %s tried to change rfidbut it was already taken', user.username);
+		res.status(409).json({
+			error_code: 'identifier_taken',
+			message: 'RFID already in use.',
+		});
+		return;
+	}
 	await userStore.updateUser(user.userId, { rfid: rfid });
 
 	logger.info('User %s changed rfid', user.username);

@@ -1,5 +1,5 @@
 import express from 'express';
-import categoryStore from '../db/categoryStore.js';
+import * as categoryStore from '../db/categoryStore.js';
 import logger from '../logger.js';
 import authMiddleware, { type Authenticated_request } from './authMiddleware.js';
 

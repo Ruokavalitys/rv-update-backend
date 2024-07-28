@@ -1,17 +1,22 @@
 import type { Request } from 'express';
-import userStore, { type user } from '../db/userStore.js';
+import * as userStore from '../db/userStore.js';
 import jwt from '../jwt/token.js';
 import logger from '../logger.js';
 import { verifyRole } from './authUtils.js';
 
 export interface Authenticated_request extends Request {
-	user?: user;
+	user?: userStore.user;
 }
 
-const authMiddleware = (requiredRole = null, tokenSecret = process.env.JWT_SECRET) => {
+const authMiddleware = ({
+	requiredRole = null,
+	tokenSecret = process.env.JWT_SECRET,
+	rvTerminalRequired = false,
+}: { requiredRole?: string; tokenSecret?: string; rvTerminalRequired?: boolean } = {}) => {
 	return async (req, res, next) => {
 		const authHeader = req.get('Authorization');
 		let userId = null;
+		let loggedInFromRvTerminal = false;
 
 		// verify that Authorization header contains a token
 		if (authHeader !== undefined) {
@@ -21,6 +26,7 @@ const authMiddleware = (requiredRole = null, tokenSecret = process.env.JWT_SECRE
 
 				if (token) {
 					userId = token.data.userId;
+					loggedInFromRvTerminal = token.data.loggedInFromRvTerminal;
 				}
 			}
 		}
@@ -32,16 +38,35 @@ const authMiddleware = (requiredRole = null, tokenSecret = process.env.JWT_SECRE
 				if (user) {
 					// finally, verify that user is authorized
 					if (verifyRole(requiredRole, user.role)) {
-						logger.info(
-							'User %s successfully authenticated for %s %s',
+						if (!rvTerminalRequired || loggedInFromRvTerminal) {
+							logger.info(
+								'User %s successfully authenticated for %s %s',
+								user.username,
+								req.method,
+								req.originalUrl
+							);
+							req.user = user;
+							next();
+						} else {
+							logger.error(
+								'User %s is not authorized for %s %s, login from rvTerminal required for the route',
+								user.username,
+								req.method,
+								req.originalUrl
+							);
+							res.status(403).json({
+								error_code: 'not_authorized',
+								message: 'Not authorized',
+							});
+						}
+					} else {
+						logger.error(
+							'User %s is not authorized for %s %s, missing role %s',
 							user.username,
 							req.method,
-							req.originalUrl
+							req.originalUrl,
+							requiredRole
 						);
-						req.user = user;
-						next();
-					} else {
-						logger.error('User %s is not authorized for %s %s', user.username, req.method, req.originalUrl);
 						res.status(403).json({
 							error_code: 'not_authorized',
 							message: 'Not authorized',
