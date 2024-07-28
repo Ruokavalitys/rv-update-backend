@@ -451,8 +451,8 @@ describe('routes: user', () => {
 			expect(res.status).to.equal(204);
 
 			const user = await userStore.findById(1);
-			
-			expect(user.rfidHash).to.equal(userStore.oldRvRfidHash('50ab45'))
+
+			expect(user.rfidHash).to.equal(userStore.oldRvRfidHash('50ab45'));
 		});
 
 		it('should not return any rfids', async () => {
