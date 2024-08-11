@@ -27,7 +27,7 @@ services:
             - ./knexfile.js:/usr/src/app/knexfile.js
             - ./openapi.yaml:/usr/src/app/openapi.yaml
     db:
-        image: postgres:10-alpine
+        image: postgres:16-alpine
         ports:
             - 127.0.0.1:5432:5432
         volumes:
