@@ -21,7 +21,7 @@ router.param('userId', async (req: Users_request, res, next) => {
 			message: `No user with id '${req.params.userId}' found`,
 		});
 
-		logger.error('User %s tried to access unknown user %s as admin', req.user.username, req.params.userId);
+		logger.warn('User %s tried to access unknown user %s as admin', req.user.username, req.params.userId);
 
 		return;
 	}

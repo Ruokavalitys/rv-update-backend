@@ -46,7 +46,7 @@ router.patch('/', async (req: Authenticated_request, res) => {
 	if (username !== undefined) {
 		const userByUsername = await userStore.findByUsername(username);
 		if (userByUsername) {
-			logger.error('User %s tried to change username to %s but it was taken', user.username, username);
+			logger.warn('User %s tried to change username to %s but it was taken', user.username, username);
 			res.status(409).json({
 				error_code: 'identifier_taken',
 				message: 'Username already in use.',
@@ -57,7 +57,7 @@ router.patch('/', async (req: Authenticated_request, res) => {
 	if (email !== undefined) {
 		const userByEmail = await userStore.findByEmail(email);
 		if (userByEmail) {
-			logger.error(
+			logger.warn(
 				'User %s tried to change email from %s to %s but it was taken',
 				user.username,
 				user.email,
@@ -140,7 +140,7 @@ router.post('/changeRfid', async (req: Authenticated_request, res) => {
 	const existing_user = await userStore.findByRfid(rfid);
 
 	if (existing_user != undefined && existing_user.userId != user.userId) {
-		logger.error('User %s tried to change rfidbut it was already taken', user.username);
+		logger.warn('User %s tried to change rfidbut it was already taken', user.username);
 		res.status(409).json({
 			error_code: 'identifier_taken',
 			message: 'RFID already in use.',

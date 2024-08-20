@@ -52,7 +52,7 @@ router.get('/:purchaseId(\\d+)', async (req: Authenticated_request, res) => {
 
 		/* The ID may not be used for any purchase or may be used for a purchase of another user. */
 		if (!purchase || purchase.user.userId !== user.userId) {
-			logger.error('User %s tried to fetch unknown purchase %s', user.username, purchaseId);
+			logger.warn('User %s tried to fetch unknown purchase %s', user.username, purchaseId);
 			res.status(404).json({
 				error_code: 'not_found',
 				message: 'Purchase event does not exist',

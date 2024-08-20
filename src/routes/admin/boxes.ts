@@ -55,7 +55,7 @@ router.post('/', async (req: Authenticated_request, res) => {
 	/* Checking if box already exists. */
 	const existingBox = await boxStore.findByBoxBarcode(boxBarcode);
 	if (existingBox) {
-		logger.error('User %s failed to create new box, box barcode %s was already taken', user.username, boxBarcode);
+		logger.warn('User %s failed to create new box, box barcode %s was already taken', user.username, boxBarcode);
 		res.status(409).json({
 			error_code: 'identifier_taken',
 			message: 'Box barcode already in use.',
@@ -66,7 +66,7 @@ router.post('/', async (req: Authenticated_request, res) => {
 	/* Checking if product exists. */
 	const existingProduct = await productStore.findByBarcode(productBarcode);
 	if (!existingProduct) {
-		logger.error('User %s tried to create box of unknown product %s', user.username, productBarcode);
+		logger.warn('User %s tried to create box of unknown product %s', user.username, productBarcode);
 		res.status(400).json({
 			error_code: 'invalid_reference',
 			message: 'Referenced product not found.',
@@ -110,7 +110,7 @@ router.get('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) =>
 	const box = await boxStore.findByBoxBarcode(boxBarcode);
 
 	if (!box) {
-		logger.error('User %s tried to fetch unknown box %s as admin', user.username, boxBarcode);
+		logger.warn('User %s tried to fetch unknown box %s as admin', user.username, boxBarcode);
 		res.status(404).json({
 			error_code: 'not_found',
 			message: 'Box does not exist',
@@ -133,7 +133,7 @@ router.patch('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) 
 	/* Checking if box exists. */
 	const existingBox = await boxStore.findByBoxBarcode(boxBarcode);
 	if (!existingBox) {
-		logger.error('User %s tried to modify data of unknown box %s', user.username, boxBarcode);
+		logger.warn('User %s tried to modify data of unknown box %s', user.username, boxBarcode);
 		res.status(404).json({
 			error_code: 'not_found',
 			message: 'Box does not exist.',
@@ -145,7 +145,7 @@ router.patch('/:boxBarcode(\\d{1,14})', async (req: Authenticated_request, res) 
 	if (productBarcode !== undefined) {
 		const existingProduct = await productStore.findByBarcode(productBarcode);
 		if (!existingProduct) {
-			logger.error(
+			logger.warn(
 				'User %s tried to modify product of box %s to unknown product %s',
 				user.username,
 				boxBarcode,

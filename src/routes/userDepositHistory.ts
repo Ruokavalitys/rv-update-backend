@@ -43,7 +43,7 @@ router.get('/:depositId(\\d+)', async (req: Authenticated_request, res) => {
 
 		/* The ID may not be used for any deposit or may be used for a deposit of another user. */
 		if (!deposit || deposit.user.userId !== user.userId) {
-			logger.error('User %s tried to fetch unknown deposit %s', user.username, depositId);
+			logger.warn('User %s tried to fetch unknown deposit %s', user.username, depositId);
 			res.status(404).json({
 				error_code: 'not_found',
 				message: 'Deposit event does not exist',

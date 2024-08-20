@@ -38,7 +38,7 @@ router.get('/:barcode(\\d{1,14})', async (req: Authenticated_request, res) => {
 	const product = await productStore.findByBarcode(barcode);
 
 	if (!product) {
-		logger.error('User %s tried to fetch unknown product %s', user.username, barcode);
+		logger.warn('User %s tried to fetch unknown product %s', user.username, barcode);
 
 		res.status(404).json({
 			error_code: 'not_found',
@@ -112,7 +112,7 @@ router.post(
 				});
 			} else {
 				// user doesn't have enough money
-				logger.error(
+				logger.warn(
 					"User %s tried to purchase %s x product %s but didn't have enough money.",
 					user.username,
 					count,
@@ -125,7 +125,7 @@ router.post(
 			}
 		} else {
 			// unknown product, no valid price or out of stock
-			logger.error('User %s tried to purchase unknown product %s', user.username, barcode);
+			logger.warn('User %s tried to purchase unknown product %s', user.username, barcode);
 			res.status(404).json({
 				error_code: 'not_found',
 				message: 'Product not found',

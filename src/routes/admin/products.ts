@@ -23,7 +23,7 @@ router.param('barcode', async (req: Products_requests, res, next) => {
 			message: `No product with barcode '${req.params.barcode}' found`,
 		});
 
-		logger.error('User %s tried to access unknown product %s as admin', req.user.username, req.params.barcode);
+		logger.warn('User %s tried to access unknown product %s as admin', req.user.username, req.params.barcode);
 
 		return;
 	}
@@ -72,7 +72,7 @@ router.post('/', async (req: Products_requests, res) => {
 	/* Checking if product already exists. */
 	const existingProduct = await productStore.findByBarcode(barcode);
 	if (existingProduct) {
-		logger.error('User %s failed to create new product, barcode %s was already taken', user.username, barcode);
+		logger.warn('User %s failed to create new product, barcode %s was already taken', user.username, barcode);
 		res.status(409).json({
 			error_code: 'identifier_taken',
 			message: 'Barcode already in use.',
@@ -83,7 +83,7 @@ router.post('/', async (req: Products_requests, res) => {
 	/* Checking if category exists. */
 	const existingCategory = await categoryStore.findById(categoryId);
 	if (!existingCategory) {
-		logger.error('User %s tried to create product of unknown category %s', user.username, categoryId);
+		logger.warn('User %s tried to create product of unknown category %s', user.username, categoryId);
 		res.status(400).json({
 			error_code: 'invalid_reference',
 			message: 'Referenced category not found.',

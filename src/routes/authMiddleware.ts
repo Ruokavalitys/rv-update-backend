@@ -48,7 +48,7 @@ const authMiddleware = ({
 							req.user = user;
 							next();
 						} else {
-							logger.error(
+							logger.warn(
 								'User %s is not authorized for %s %s, login from rvTerminal required for the route',
 								user.username,
 								req.method,
@@ -60,7 +60,7 @@ const authMiddleware = ({
 							});
 						}
 					} else {
-						logger.error(
+						logger.warn(
 							'User %s is not authorized for %s %s, missing role %s',
 							user.username,
 							req.method,
@@ -74,7 +74,7 @@ const authMiddleware = ({
 					}
 				} else {
 					// token contains nonexistent user or no roles
-					logger.error('Invalid authorization token (token contains nonexistent user or no roles)');
+					logger.warn('Invalid authorization token (token contains nonexistent user or no roles)');
 					res.status(401).json({
 						error_code: 'invalid_token',
 						message: 'Invalid authorization token',
@@ -89,7 +89,7 @@ const authMiddleware = ({
 			}
 		} else {
 			// no username in token
-			logger.error('Invalid authorization token (no username in token)');
+			logger.warn('Invalid authorization token (no username in token)');
 			res.status(401).json({
 				error_code: 'invalid_token',
 				message: 'Invalid authorization token',

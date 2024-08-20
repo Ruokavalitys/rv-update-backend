@@ -16,7 +16,7 @@ export const authenticateUserRfid =
 		if (body.rvTerminalSecret === process.env.RV_TERMINAL_SECRET) {
 			loggedInFromRvTerminal = true;
 		} else {
-			logger.error('Rfid login failed, rv_terminal_secret not included');
+			logger.warn('Rfid login failed, rv_terminal_secret not included');
 			res.status(401).json({
 				error_code: 'invalid_credentials',
 				message: 'Invalid rfid',
@@ -32,14 +32,14 @@ export const authenticateUserRfid =
 					accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, tokenSecret),
 				});
 			} else {
-				logger.error('User %s is not authorized to login as role %s', user.username, requiredRole);
+				logger.warn('User %s is not authorized to login as role %s', user.username, requiredRole);
 				res.status(403).json({
 					error_code: 'not_authorized',
 					message: 'Not authorized',
 				});
 			}
 		} else {
-			logger.error('Failed to login with rfid');
+			logger.warn('Failed to login with rfid');
 			res.status(401).json({
 				error_code: 'invalid_credentials',
 				message: 'Invalid rfid',
@@ -66,21 +66,21 @@ export const authenticateUser =
 						accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, process.env.JWT_SECRET),
 					});
 				} else {
-					logger.error('User %s is not authorized to login as role %s', user.username, requiredRole);
+					logger.warn('User %s is not authorized to login as role %s', user.username, requiredRole);
 					res.status(403).json({
 						error_code: 'not_authorized',
 						message: 'Not authorized',
 					});
 				}
 			} else {
-				logger.error('Failed to login with username and password. Username was %s', username);
+				logger.warn('Failed to login with username and password. Username was %s', username);
 				res.status(401).json({
 					error_code: 'invalid_credentials',
 					message: 'Invalid username or password',
 				});
 			}
 		} else {
-			logger.error('Failed to login with username and password. Username was %s', username);
+			logger.warn('Failed to login with username and password. Username was %s', username);
 			res.status(401).json({
 				error_code: 'invalid_credentials',
 				message: 'Invalid username or password',

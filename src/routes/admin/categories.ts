@@ -62,7 +62,7 @@ router.get('/:categoryId(\\d+)', async (req: Authenticated_request, res) => {
 	const category = await categoryStore.findById(categoryId);
 
 	if (!category) {
-		logger.error('User %s tried to fetch unknown category %s as admin', user.username, categoryId);
+		logger.warn('User %s tried to fetch unknown category %s as admin', user.username, categoryId);
 		res.status(404).json({
 			error_code: 'not_found',
 			message: 'Category does not exist',
@@ -87,7 +87,7 @@ router.patch('/:categoryId(\\d+)', async (req: Authenticated_request, res) => {
 	/* Checking if category exists. */
 	const existingCategory = await categoryStore.findById(categoryId);
 	if (!existingCategory) {
-		logger.error('User %s tried to modify data of unknown category %s', user.username, categoryId);
+		logger.warn('User %s tried to modify data of unknown category %s', user.username, categoryId);
 		res.status(404).json({
 			error_code: 'not_found',
 			message: 'Category does not exist.',
