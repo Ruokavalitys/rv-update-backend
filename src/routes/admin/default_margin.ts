@@ -1,6 +1,7 @@
 import express from 'express';
 import { getPreference, preferences, setPreference } from '../../db/preferences.js';
-import authMiddleware from '../authMiddleware.js';
+import logger from '../../logger.js';
+import authMiddleware, { type Authenticated_request } from '../authMiddleware.js';
 
 const { GLOBAL_DEFAULT_MARGIN } = preferences;
 
@@ -13,8 +14,9 @@ router.get('/', async (_req, res) => {
 	res.status(200).json({ margin });
 });
 
-router.patch('/', async (req, res) => {
+router.patch('/', async (req: Authenticated_request, res) => {
 	await setPreference(GLOBAL_DEFAULT_MARGIN, req.body.margin);
+	logger.info('User %s set current margin into %s', req.user.username, req.body.margin);
 	res.status(200).send();
 });
 
