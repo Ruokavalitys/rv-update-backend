@@ -25,6 +25,7 @@ router.get('/', async (req: Authenticated_request, res) => {
 					sellPrice: purchase.product.sellPrice,
 					stock: purchase.product.stock,
 				},
+				returned: purchase.returned,
 				price: purchase.price,
 				balanceAfter: purchase.balanceAfter,
 			};
@@ -75,6 +76,7 @@ router.get('/:purchaseId(\\d+)', async (req: Authenticated_request, res) => {
 					sellPrice: purchase.product.sellPrice,
 					stock: purchase.product.stock,
 				},
+				returned: purchase.returned,
 				price: purchase.price,
 				balanceAfter: purchase.balanceAfter,
 			},

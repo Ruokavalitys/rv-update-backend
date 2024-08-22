@@ -122,6 +122,10 @@ components:
           type: integer
           example: 19
           description: Price (in cents) of the product bought.
+        returned:
+          type: boolean
+          example: false
+          description: Has the user returned this product or not?
     PurchaseEventProduct:
       type: object
       required:
