@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.get('/leaderboard', requireRvTerminalSecretMiddleware(), async (_, res) => {
 	const lb = await leaderboard();
-	console.log(lb);
 	res.json(lb);
 });
 
