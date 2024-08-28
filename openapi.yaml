@@ -828,6 +828,31 @@ paths:
                   type: string
                   example: 'jaara.fs.constultant@coolcorp.com'
                   minLength: 1
+  /api/v1/statistics/leaderboard: 
+    get: 
+      summary: Get top list of rv users, requires RV-Terminal-Secret header
+      operationId: leaderboard
+      tags:
+        - normal
+      responses: 
+        200: 
+          description: Check success.
+          content: 
+            application/json: 
+              schema: 
+                type: array
+                required: 
+                  - name
+                  - saldo
+                properties: 
+                  name: 
+                    type: string
+                  saldo:
+                    type: integer
+        403:
+          '$ref': '#/components/responses/NotAuthorizedErrorResponse'
+        400:
+          '$ref': '#/components/responses/BadRequestErrorResponse'
   /api/v1/user/user_exists: 
     post: 
       summary: Check if an user with the given username exists

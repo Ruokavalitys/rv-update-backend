@@ -8,6 +8,21 @@ export interface Authenticated_request extends Request {
 	user?: userStore.user;
 }
 
+export const requireRvTerminalSecretMiddleware = () => {
+	return async (req, res, next) => {
+		const authHeader = req.get('RV-Terminal-Secret');
+		if (authHeader !== process.env.RV_TERMINAL_SECRET) {
+			logger.warn('Request is not authorized for %s %s, missing rv terminal secret', req.method, req.originalUrl);
+			res.status(403).json({
+				error_code: 'not_authorized',
+				message: 'Not authorized',
+			});
+			return;
+		}
+		next();
+	};
+};
+
 const authMiddleware = ({
 	requiredRole = null,
 	tokenSecret = process.env.JWT_SECRET,

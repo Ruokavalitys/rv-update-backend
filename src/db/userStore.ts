@@ -174,6 +174,11 @@ export const verifyRfid = async (rfid, rfidHash) => {
 	return await bcrypt.compare(rfid, rfidHash);
 };
 
+export const leaderboard = async () => {
+	const result = await knex.raw('SELECT name, saldo FROM "RVPERSON" ORDER BY saldo DESC limit 50;');
+	return result.rows;
+};
+
 export const recordDeposit = async (userId, amount, type) => {
 	if (type != 'cash' && type != 'banktransfer') {
 		throw new Error(`Unknown deposit type: ${type}`);
