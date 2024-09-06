@@ -1,11 +1,12 @@
 import express from 'express';
 import * as userStore from '../db/userStore.js';
 import logger from './../logger.js';
+import { requireRvTerminalSecretMiddleware } from './authMiddleware.js';
 
 const router = express.Router();
 
 // Register a new user
-router.post('/', async (req, res) => {
+router.post('/', requireRvTerminalSecretMiddleware(), async (req, res) => {
 	const username = req.body.username;
 	const password = req.body.password;
 	const fullName = req.body.fullName;
