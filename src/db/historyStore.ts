@@ -79,9 +79,11 @@ export const createDepositHistoryQuery = () =>
 			'PERSONHIST.actionid',
 			'RVPERSON.privacy_level'
 		)
-		.where('PERSONHIST.actionid', actions.DEPOSITED_MONEY_CASH) /* actionid 17 = deposit action */
-		.orWhere('PERSONHIST.actionid', actions.DEPOSITED_MONEY_BANKTRANSFER)
-		.orWhere('PERSONHIST.actionid', actions.DEPOSITED_MONEY)
+		.whereIn('PERSONHIST.actionid', [
+			actions.DEPOSITED_MONEY_CASH,
+			actions.DEPOSITED_MONEY_BANKTRANSFER,
+			actions.DEPOSITED_MONEY,
+		])
 		.orderBy([
 			{ column: 'PERSONHIST.time', order: 'desc' },
 			{ column: 'PERSONHIST.pershistid', order: 'desc' },
