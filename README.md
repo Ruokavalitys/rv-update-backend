@@ -7,6 +7,10 @@
 
 Backend for new TKO-äly Ruokavälitys (Snack kiosk)
 
+## Forked Version
+
+This repository is a fork of the [TKOaly/rv-backend](https://github.com/tkoaly/rv-backend/) project. In this version, the software is updated as part of the Ohtu project, incorporating changes and enhancements tailored to its specific goals.
+
 #### Serves the following frontends:
 
 -   [rv-tui-frontend](https://github.com/TKOaly/rv-tui-frontend) (React based TUI interface)
@@ -61,7 +65,7 @@ Intallation instructions apply for running the project backend. To run the front
 ### installation
 
 ```bash
-git clone git@github.com:TKOaly/rv-backend.git
+git clone git@github.com:Ruokavalitys/rv-update-backend.git
 cd rv-backend
 npm install
 cp .env.example .env
