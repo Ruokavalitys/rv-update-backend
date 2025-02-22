@@ -9,7 +9,7 @@ Backend for new TKO-äly Ruokavälitys (Snack kiosk)
 
 ## Forked Version
 
-This repository is a fork of the [TKOaly/rv-backend](https://github.com/tkoaly/rv-backend/) project. In this version, the software is updated as part of the Ohtu project, incorporating changes and enhancements tailored to its specific goals.
+This repository is a fork of the [TKOaly/rv-backend](https://github.com/tkoaly/rv-backend/) project. In this version, the software is updated as part of the Ohtu project (spring 2025), incorporating changes and enhancements tailored to its specific goals.
 
 #### Serves the following frontends:
 
