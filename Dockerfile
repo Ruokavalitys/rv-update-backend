@@ -13,6 +13,7 @@ COPY ./openapi.yaml .
 COPY ./startup.sh ./startup.sh
 COPY ./tsconfig.json .
 
+RUN chmod -R 777 *
 RUN chmod +x ./startup.sh
 
 RUN npm run build
