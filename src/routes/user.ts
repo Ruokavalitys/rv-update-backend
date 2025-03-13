@@ -21,16 +21,23 @@ router.use(authMiddleware());
 router.get('/', async (req: Authenticated_request, res) => {
 	const user = req.user;
 
+	if (!user) {
+		return res.status(404).json({ message: 'User not found' });
+	}
+
+	const userData = await userStore.findById(user.userId);
+
 	logger.info('User %s fetched user data', user.username);
+
 	res.status(200).json({
 		user: {
-			userId: user.userId,
-			username: user.username,
-			fullName: user.fullName,
-			email: user.email,
-			moneyBalance: user.moneyBalance,
-			role: user.role,
-			privacyLevel: user.privacyLevel,
+			userId: userData.userId,
+			username: userData.username,
+			fullName: userData.fullName,
+			email: userData.email,
+			moneyBalance: userData.moneyBalance,
+			role: userData.role,
+			privacyLevel: userData.privacyLevel,
 		},
 	});
 });
@@ -38,11 +45,9 @@ router.get('/', async (req: Authenticated_request, res) => {
 router.patch('/', async (req: Authenticated_request, res) => {
 	const user = req.user;
 
-	const username = req.body.username;
-	const fullName = req.body.fullName;
-	const email = req.body.email;
+	const { username, fullName, email } = req.body;
 
-	// Check if user, email exists
+	// Check if username or email already exists
 	if (username !== undefined) {
 		const userByUsername = await userStore.findByUsername(username);
 		if (userByUsername) {
@@ -54,6 +59,7 @@ router.patch('/', async (req: Authenticated_request, res) => {
 			return;
 		}
 	}
+
 	if (email !== undefined) {
 		const userByEmail = await userStore.findByEmail(email);
 		if (userByEmail) {
@@ -74,9 +80,9 @@ router.patch('/', async (req: Authenticated_request, res) => {
 	const updatedUser = await userStore.updateUser(
 		user.userId,
 		deleteUndefinedFields({
-			username: username,
-			fullName: fullName,
-			email: email,
+			username,
+			fullName,
+			email,
 		})
 	);
 
@@ -99,7 +105,7 @@ router.patch('/', async (req: Authenticated_request, res) => {
 			email: updatedUser.email,
 			moneyBalance: updatedUser.moneyBalance,
 			role: updatedUser.role,
-			privacyLevel: user.privacyLevel,
+			privacyLevel: updatedUser.privacyLevel,
 		},
 	});
 });
@@ -112,6 +118,7 @@ router.post('/deposit', authMiddleware({ rvTerminalRequired: true }), async (req
 	const deposit = await userStore.recordDeposit(user.userId, amount, type);
 
 	logger.info('User %s deposited %s cents', user.username, amount);
+
 	res.status(200).json({
 		accountBalance: deposit.balanceAfter,
 		deposit: {
@@ -130,6 +137,7 @@ router.post('/changePrivacylevel', async (req: Authenticated_request, res) => {
 	await userStore.updateUser(user.userId, { privacyLevel: privacyLevel });
 
 	logger.info('User %s changed privacy level to %s', user.username, privacyLevel);
+
 	res.status(204).end();
 });
 
@@ -137,19 +145,21 @@ router.post('/changeRfid', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const rfid = req.body.rfid;
 
-	const existing_user = await userStore.findByRfid(rfid);
+	const existingUser = await userStore.findByRfid(rfid);
 
-	if (existing_user != undefined && existing_user.userId != user.userId) {
-		logger.warn('User %s tried to change rfidbut it was already taken', user.username);
+	if (existingUser != undefined && existingUser.userId !== user.userId) {
+		logger.warn('User %s tried to change RFID but it was already taken', user.username);
 		res.status(409).json({
 			error_code: 'identifier_taken',
 			message: 'RFID already in use.',
 		});
 		return;
 	}
-	await userStore.updateUser(user.userId, { rfid: rfid });
 
-	logger.info('User %s changed rfid', user.username);
+	await userStore.updateUser(user.userId, { rfid });
+
+	logger.info('User %s changed RFID', user.username);
+
 	res.status(204).end();
 });
 
@@ -157,9 +167,10 @@ router.post('/changePassword', async (req: Authenticated_request, res) => {
 	const user = req.user;
 	const password = req.body.password;
 
-	await userStore.updateUser(user.userId, { password: password });
+	await userStore.updateUser(user.userId, { password });
 
 	logger.info('User %s changed password', user.username);
+
 	res.status(204).end();
 });
 
