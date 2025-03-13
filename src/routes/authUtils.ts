@@ -30,6 +30,15 @@ export const authenticateUserRfid =
 				logger.info('User %s logged in as role %s', user.username, requiredRole);
 				res.status(200).json({
 					accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, tokenSecret),
+					user: {
+						userId: user.userId,
+						username: user.username,
+						fullName: user.fullName,
+						email: user.email,
+						role: user.role,
+						moneyBalance: user.moneyBalance,
+						privacyLevel: user.privacyLevel,
+					},
 				});
 			} else {
 				logger.warn('User %s is not authorized to login as role %s', user.username, requiredRole);
@@ -57,13 +66,29 @@ export const authenticateUser =
 		if (body.rvTerminalSecret === process.env.RV_TERMINAL_SECRET) {
 			loggedInFromRvTerminal = true;
 		}
+
 		const user = await userStore.findByUsername(username);
+
 		if (user) {
 			if (password != undefined && (await userStore.verifyPassword(password, user.passwordHash))) {
 				if (verifyRole(requiredRole, user.role)) {
+					const accessToken = jwt.sign(
+						{ userId: user.userId, loggedInFromRvTerminal },
+						process.env.JWT_SECRET
+					);
+
 					logger.info('User %s logged in with role %s', user.username, user.role);
 					res.status(200).json({
-						accessToken: jwt.sign({ userId: user.userId, loggedInFromRvTerminal }, process.env.JWT_SECRET),
+						accessToken: accessToken,
+						user: {
+							userId: user.userId,
+							username: user.username,
+							fullName: user.fullName,
+							email: user.email,
+							role: user.role,
+							moneyBalance: user.moneyBalance,
+							privacyLevel: user.privacyLevel,
+						},
 					});
 				} else {
 					logger.warn('User %s is not authorized to login as role %s', user.username, requiredRole);
